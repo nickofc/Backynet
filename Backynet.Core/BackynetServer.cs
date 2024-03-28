@@ -4,13 +4,13 @@ namespace Backynet.Core;
 
 internal sealed class BackynetServer : IBackynetServer
 {
-    private readonly IStorage _storage;
+    private readonly IJobRepository _jobRepository;
     private readonly IJobRunner _jobRunner;
     private readonly BackynetServerOptions _backynetServerOptions;
 
-    public BackynetServer(IStorage storage, IJobRunner jobRunner, BackynetServerOptions backynetServerOptions)
+    public BackynetServer(IJobRepository jobRepository, IJobRunner jobRunner, BackynetServerOptions backynetServerOptions)
     {
-        _storage = storage;
+        _jobRepository = jobRepository;
         _jobRunner = jobRunner;
         _backynetServerOptions = backynetServerOptions;
     }
@@ -27,7 +27,7 @@ internal sealed class BackynetServer : IBackynetServer
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var jobs = await _storage.Acquire(_backynetServerOptions.ServerName, 1, cancellationToken);
+            var jobs = await _jobRepository.Acquire(_backynetServerOptions.ServerName, 1, cancellationToken);
 
             foreach (var job in jobs)
             {
@@ -38,7 +38,7 @@ internal sealed class BackynetServer : IBackynetServer
                 catch (Exception e)
                 {
                     job.JobState = JobState.Failed;
-                    await _storage.Update(job.Id, job, cancellationToken);
+                    await _jobRepository.Update(job.Id, job, cancellationToken);
                 }
             }
 

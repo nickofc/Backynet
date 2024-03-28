@@ -5,11 +5,11 @@ namespace Backynet.Core;
 
 internal sealed class BackynetClient : IBackynetClient
 {
-    private readonly IStorage _storage;
+    private readonly IJobRepository _jobRepository;
 
-    public BackynetClient(IStorage storage)
+    public BackynetClient(IJobRepository jobRepository)
     {
-        _storage = storage;
+        _jobRepository = jobRepository;
     }
 
     public Task<string> EnqueueAsync(Expression<Func<Task>> expression, CancellationToken cancellationToken = default)
@@ -50,7 +50,7 @@ internal sealed class BackynetClient : IBackynetClient
             ? DateTimeOffset.Now.Add(CronUtil.GetNextOccurrence(job.Cron))
             : DateTimeOffset.Now;
         job.JobState = JobState.Scheduled;
-        await _storage.Add(job, cancellationToken);
+        await _jobRepository.Add(job, cancellationToken);
         return job.Id.ToString();
     }
 }
