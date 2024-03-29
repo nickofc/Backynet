@@ -3,12 +3,12 @@ using Npgsql;
 
 namespace Backynet.Postgresql;
 
-internal class PostgreSqlRepository : IStorage
+internal class PostgreSqlJobRepository : IJobRepository
 {
     private readonly NpgsqlConnectionFactory _npgsqlConnectionFactory;
     private readonly ISerializer _serializer;
 
-    public PostgreSqlRepository(NpgsqlConnectionFactory npgsqlConnectionFactory, ISerializer serializer)
+    public PostgreSqlJobRepository(NpgsqlConnectionFactory npgsqlConnectionFactory, ISerializer serializer)
     {
         _npgsqlConnectionFactory = npgsqlConnectionFactory;
         _serializer = serializer;

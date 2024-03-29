@@ -15,7 +15,7 @@ public class PostgresRepositoryTests : IDisposable, IAsyncDisposable
         var expectedJob = Job.Empty();
         var factory = new NpgsqlConnectionFactory(TestContext.ConnectionString);
         var serializer = new DefaultJsonSerializer();
-        var repository = new PostgreSqlRepository(factory, serializer);
+        var repository = new PostgreSqlJobRepository(factory, serializer);
 
         //act 
 
@@ -40,7 +40,7 @@ public class PostgresRepositoryTests : IDisposable, IAsyncDisposable
         var serverName = Guid.NewGuid().ToString();
         var factory = new NpgsqlConnectionFactory(TestContext.ConnectionString);
         var serializer = new DefaultJsonSerializer();
-        var repository = new PostgreSqlRepository(factory, serializer);
+        var repository = new PostgreSqlJobRepository(factory, serializer);
 
         for (var i = 0; i < 10; i++)
         {
