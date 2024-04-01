@@ -1,27 +1,38 @@
-using System.Linq.Expressions;
-
 namespace Backynet.Core.Abstraction;
+
 
 public readonly struct JobDescriptor : IJobDescriptor
 {
-    public string BaseType { get; }
-    public string Method { get; }
-    public object[] Arguments { get; }
+    public IMethod Method { get; }
+    public IReadOnlyCollection<IArgument> Arguments { get; }
 
-    public JobDescriptor(string baseType, string method, object[] arguments)
+    public JobDescriptor(IMethod method, IReadOnlyCollection<IArgument> arguments)
     {
-        BaseType = baseType;
         Method = method;
         Arguments = arguments;
     }
+}
 
-    public static JobDescriptor Empty()
+public readonly struct Method : IMethod
+{
+    public string TypeName { get; init; }
+    public string Name { get; init; }
+
+    public Method(string typeName, string name)
     {
-        return JobDescriptorFactory.CreateFromExpression(() => JobDescriptorFactory.Empty.Method());
+        TypeName = typeName;
+        Name = name;
     }
+}
 
-    public static JobDescriptor Create(Expression expression)
+public readonly struct Argument : IArgument
+{
+    public string TypeName { get; init; }
+    public object Instance { get; init; }
+
+    public Argument(string typeName, object instance)
     {
-        return JobDescriptorFactory.CreateFromExpression(expression);
+        TypeName = typeName;
+        Instance = instance;
     }
 }

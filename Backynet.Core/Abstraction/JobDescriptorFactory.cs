@@ -1,10 +1,15 @@
+using System.Collections.Concurrent;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Backynet.Core.Abstraction;
 
 public static class JobDescriptorFactory
 {
-    public static JobDescriptor CreateFromExpression(Expression expression)
+    private static readonly ConcurrentDictionary<Expression, object> Cache
+        = new ConcurrentDictionary<Expression, object>();
+
+    public static JobDescriptor Create(Expression expression)
     {
         // todo: cache
 
@@ -18,29 +23,42 @@ public static class JobDescriptorFactory
             throw new InvalidOperationException("Expression must be MethodCallExpression.");
         }
 
-        var method = methodCallExpression.Method;
+        var method = AsMethod(methodCallExpression.Method);
+        var arguments = AsArguments(methodCallExpression);
 
-        if (!method.IsStatic)
-        {
-            throw new InvalidOperationException("Method must be static.");
-        }
-
-        var args = ResolveArgs(methodCallExpression);
-        return new JobDescriptor(method.DeclaringType.AssemblyQualifiedName, method.Name, args);
+        return new JobDescriptor(method, arguments);
     }
 
-    private static object[] ResolveArgs(MethodCallExpression body)
+    private static IMethod AsMethod(MethodInfo methodInfo)
     {
-        var values = new object[body.Arguments.Count];
+        var type = methodInfo.DeclaringType ?? throw new InvalidOperationException("Unable to get declaring type.");
+
+        var typeName = type.AssemblyQualifiedName ?? throw new InvalidOperationException("Unable to get assembly qualified name.");
+        var methodName = type.Name;
+
+        return new Method(typeName, methodName);
+    }
+
+    private static IReadOnlyCollection<IArgument> AsArguments(MethodCallExpression methodCallExpression)
+    {
+    }
+
+    private static IReadOnlyCollection<IArgument> ResolveArgs(MethodCallExpression body)
+    {
+        var values = new List<IArgument>(body.Arguments.Count);
 
         for (var i = 0; i < body.Arguments.Count; i++)
         {
             var argument = body.Arguments[i];
 
             var expression = ResolveMemberExpression(argument);
-            var value = GetValue(expression);
 
-            values[i] = value;
+            var value = GetValue(expression);
+            var type = value.GetType();
+
+            var attr = new Argument(type.AssemblyQualifiedName, value);
+
+            values.Add(attr);
         }
 
         return values;
@@ -64,21 +82,24 @@ public static class JobDescriptorFactory
 
     private static object GetValue(MemberExpression exp)
     {
-        // expression is ConstantExpression or FieldExpression
-        if (exp.Expression is ConstantExpression)
+        while (true)
         {
-            return (((ConstantExpression)exp.Expression).Value)
-                .GetType()
-                .GetField(exp.Member.Name)
-                .GetValue(((ConstantExpression)exp.Expression).Value);
-        }
+            // expression is ConstantExpression or FieldExpression
+            if (exp.Expression is ConstantExpression)
+            {
+                return (((ConstantExpression)exp.Expression).Value).GetType()
+                    .GetField(exp.Member.Name)
+                    .GetValue(((ConstantExpression)exp.Expression).Value);
+            }
 
-        if (exp.Expression is MemberExpression)
-        {
-            return GetValue((MemberExpression)exp.Expression);
-        }
+            if (exp.Expression is MemberExpression)
+            {
+                exp = (MemberExpression)exp.Expression;
+                continue;
+            }
 
-        throw new NotImplementedException();
+            throw new NotImplementedException();
+        }
     }
 
     internal static class Empty
