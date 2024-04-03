@@ -1,8 +1,10 @@
 namespace Backynet.Core.Abstraction;
 
-
 public readonly struct JobDescriptor : IJobDescriptor
 {
+    public static readonly IJobDescriptor Empty = JobDescriptorFactory.Create(
+        () => JobDescriptorFactory.Empty.Method());
+
     public IMethod Method { get; }
     public IReadOnlyCollection<IArgument> Arguments { get; }
 

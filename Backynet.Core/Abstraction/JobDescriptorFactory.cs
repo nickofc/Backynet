@@ -9,7 +9,7 @@ public static class JobDescriptorFactory
     private static readonly ConcurrentDictionary<Expression, object> Cache
         = new ConcurrentDictionary<Expression, object>();
 
-    public static JobDescriptor Create(Expression expression)
+    public static JobDescriptor Create(Expression<Action> expression)
     {
         if (expression is not LambdaExpression lambdaExpression)
         {
