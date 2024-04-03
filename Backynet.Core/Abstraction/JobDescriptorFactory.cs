@@ -9,6 +9,24 @@ public static class JobDescriptorFactory
     private static readonly ConcurrentDictionary<Expression, object> Cache
         = new ConcurrentDictionary<Expression, object>();
 
+    public static JobDescriptor Create(Expression<Func<Task>> expression)
+    {
+        if (expression is not LambdaExpression lambdaExpression)
+        {
+            throw new InvalidOperationException("Expression must be LambdaExpression.");
+        }
+
+        if (lambdaExpression.Body is not MethodCallExpression methodCallExpression)
+        {
+            throw new InvalidOperationException("Expression must be MethodCallExpression.");
+        }
+
+        var method = GetMethod(methodCallExpression.Method);
+        var arguments = GetArguments(methodCallExpression);
+
+        return new JobDescriptor(method, arguments);
+    }
+    
     public static JobDescriptor Create(Expression<Action> expression)
     {
         if (expression is not LambdaExpression lambdaExpression)
@@ -37,9 +55,9 @@ public static class JobDescriptorFactory
         return new Method(typeName, methodName);
     }
 
-    private static IReadOnlyCollection<IArgument> GetArguments(MethodCallExpression methodCallExpression)
+    private static IArgument[] GetArguments(MethodCallExpression methodCallExpression)
     {
-        var values = new List<IArgument>(methodCallExpression.Arguments.Count);
+        var values = new IArgument[methodCallExpression.Arguments.Count];
 
         for (var i = 0; i < methodCallExpression.Arguments.Count; i++)
         {
@@ -51,7 +69,7 @@ public static class JobDescriptorFactory
             var typeName = type.AssemblyQualifiedName ?? throw new InvalidOperationException("Unable to get assembly qualified name.");
             var argument = new Argument(typeName, value);
 
-            values.Add(argument);
+            values[i] = argument;
         }
 
         return values;

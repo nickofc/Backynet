@@ -16,14 +16,14 @@ public class JobTests
 
         // act
 
-        var job = Job.Create(expression);
+        var job = JobFactory.Create(expression);
 
         // assert
 
         Assert.NotNull(job.Descriptor.Method);
         Assert.NotNull(job.Descriptor.Arguments);
-        Assert.Equal(valueTypeArgument, job.Descriptor.Arguments[0]);
-        Assert.Equal(referenceTypeArgument, job.Descriptor.Arguments[1]);
+        Assert.Equal(valueTypeArgument, job.Descriptor.Arguments[0].Value);
+        Assert.Equal(referenceTypeArgument, job.Descriptor.Arguments[1].Value);
     }
 
     private static Task FakeAsyncMethod(int fakeArg1, FakeDto fakeArg2)

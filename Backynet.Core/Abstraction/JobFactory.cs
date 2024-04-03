@@ -5,7 +5,15 @@ namespace Backynet.Core.Abstraction;
 public static class JobFactory
 {
     public static readonly Job Empty = Create(JobDescriptor.Empty);
-    
+
+    public static Job Create(Expression<Func<Task>> expression)
+    {
+        ArgumentNullException.ThrowIfNull(expression);
+
+        var methodMetadata = JobDescriptorFactory.Create(expression);
+        return Create(methodMetadata);
+    }
+
     public static Job Create(Expression<Action> expression)
     {
         ArgumentNullException.ThrowIfNull(expression);
@@ -27,5 +35,15 @@ public static class JobFactory
         };
 
         return job;
+    }
+
+    public static Job Create(Expression expression)
+    {
+        return expression switch
+        {
+            Expression<Action> x => Create(x),
+            Expression<Func<Task>> x => Create(x),
+            _ => throw new InvalidOperationException()
+        };
     }
 }

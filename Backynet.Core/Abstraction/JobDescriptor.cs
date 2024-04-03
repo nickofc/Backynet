@@ -6,9 +6,9 @@ public readonly struct JobDescriptor : IJobDescriptor
         () => JobDescriptorFactory.Empty.Method());
 
     public IMethod Method { get; }
-    public IReadOnlyCollection<IArgument> Arguments { get; }
+    public IArgument[] Arguments { get; }
 
-    public JobDescriptor(IMethod method, IReadOnlyCollection<IArgument> arguments)
+    public JobDescriptor(IMethod method, IArgument[] arguments)
     {
         Method = method;
         Arguments = arguments;
@@ -30,11 +30,11 @@ public readonly struct Method : IMethod
 public readonly struct Argument : IArgument
 {
     public string TypeName { get; init; }
-    public object Instance { get; init; }
+    public object? Value { get; init; }
 
-    public Argument(string typeName, object instance)
+    public Argument(string typeName, object value)
     {
         TypeName = typeName;
-        Instance = instance;
+        Value = value;
     }
 }

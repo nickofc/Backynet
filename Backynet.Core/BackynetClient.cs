@@ -44,7 +44,7 @@ internal sealed class BackynetClient : IBackynetClient
 
     private async Task<string> EnqueueCoreAsync(Expression expression, string? groupName = null, CancellationToken cancellationToken = default)
     {
-        var job = Job.Create(expression);
+        var job = JobFactory.Create(expression);
         job.GroupName = groupName;
         job.NextOccurrenceAt = job.Cron != null
             ? DateTimeOffset.Now.Add(CronUtil.GetNextOccurrence(job.Cron))
