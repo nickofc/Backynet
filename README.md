@@ -1,4 +1,3 @@
 # backynet
 
-sobota
-niedziela 
+brak dostępu do kompa (05-07.04.2024)
