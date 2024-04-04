@@ -9,11 +9,11 @@ public class SimpleJobRunnerTest
     [Fact]
     public async Task Should_Execute_Invokable()
     {
-        var valueTypeArgument = 997;
+        const int valueTypeArgument = 997;
         var referenceTypeArgument = new FakeDto { Username = "Antoni" };
 
         Expression<Func<Task>> expression = () => FakeAsyncMethod(valueTypeArgument, referenceTypeArgument);
-        var job = Job.Create(expression);
+        var job = JobFactory.Create(expression);
 
         var jobRunner = new SimpleJobRunner();
         await jobRunner.Run(job);

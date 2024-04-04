@@ -26,8 +26,8 @@ internal class PostgreSqlJobRepository : IJobRepository
         command.Parameters.Add(new NpgsqlParameter("id", job.Id));
         command.Parameters.Add(new NpgsqlParameter("state", (int)job.JobState)); // todo: remove boxing
         command.Parameters.Add(new NpgsqlParameter("created_at", job.CreatedAt));
-        command.Parameters.Add(new NpgsqlParameter("base_type", job.Descriptor.BaseType));
-        command.Parameters.Add(new NpgsqlParameter("method", job.Descriptor.Method));
+        command.Parameters.Add(new NpgsqlParameter("base_type", job.Descriptor.Method.TypeName));
+        command.Parameters.Add(new NpgsqlParameter("method", job.Descriptor.Method.Name));
         command.Parameters.Add(new NpgsqlParameter("arguments", _serializer.Serialize(job.Descriptor.Arguments)));
         command.Parameters.Add(new NpgsqlParameter("server_name",
             job.ServerName is null ? DBNull.Value : job.ServerName));
@@ -83,8 +83,8 @@ internal class PostgreSqlJobRepository : IJobRepository
         command.Parameters.Add(new NpgsqlParameter("id", job.Id));
         command.Parameters.Add(new NpgsqlParameter("state", (int)job.JobState)); // todo: remove boxing
         command.Parameters.Add(new NpgsqlParameter("created_at", job.CreatedAt));
-        command.Parameters.Add(new NpgsqlParameter("base_type", job.Descriptor.BaseType));
-        command.Parameters.Add(new NpgsqlParameter("method", job.Descriptor.Method));
+        command.Parameters.Add(new NpgsqlParameter("base_type", job.Descriptor.Method.TypeName));
+        command.Parameters.Add(new NpgsqlParameter("method", job.Descriptor.Method.Name));
         command.Parameters.Add(new NpgsqlParameter("arguments", _serializer.Serialize(job.Descriptor.Arguments)));
         command.Parameters.Add(new NpgsqlParameter("server_name", job.ServerName));
         command.Parameters.Add(new NpgsqlParameter("cron", job.Cron));
@@ -135,8 +135,8 @@ internal class PostgreSqlJobRepository : IJobRepository
         var created = reader.GetDateTime(2);
 
         var baseType = reader.GetString(3);
-        var method = reader.GetString(4);
-        var arguments = _serializer.Deserialize<object[]>(reader.GetString(5));
+        var methodName = reader.GetString(4);
+ //        var arguments = _serializer.Deserialize<Argument[]>(reader.GetString(5));
 
         string? serverName = null;
 
@@ -166,12 +166,14 @@ internal class PostgreSqlJobRepository : IJobRepository
             nextOccurrenceAt = reader.GetDateTime(9);
         }
 
+        var method = new Method(baseType, methodName);
+
         return new Job
         {
             Id = id,
             JobState = (JobState)state,
             CreatedAt = created,
-            Descriptor = new JobDescriptor(baseType, method, arguments),
+            Descriptor = new JobDescriptor(method, new IArgument[1]),
             Cron = cron,
             ServerName = serverName,
             GroupName = groupName,
