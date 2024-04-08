@@ -20,7 +20,12 @@ public class JobDescriptorTests
         // assert
 
         Assert.NotNull(job.Method);
+        Assert.Equal(nameof(FakeAsyncMethod), job.Method.Name);
+        Assert.Equal(typeof(JobDescriptorTests).FullName, job.Method.TypeName);
+
         Assert.NotNull(job.Arguments);
+        Assert.Equal(fakeArgument, job.Arguments[0].Value);
+        Assert.Equal(typeof(string).FullName, job.Arguments[0].TypeName);
     }
 
     [Fact]
@@ -39,6 +44,31 @@ public class JobDescriptorTests
 
         Assert.NotNull(job.Method);
         Assert.NotNull(job.Arguments);
+    }
+
+    [Fact]
+    public void Should_Return_New_JobDescriptor_When_One_Argument_Is_Int_And_Record()
+    {
+        // arrange
+
+        var fakeArgument = new FakeDto();
+        Expression<Func<Task>> expression = () => FakeAsyncMethod(1, fakeArgument);
+
+        // act
+
+        var job = JobDescriptorFactory.Create(expression);
+
+        // assert
+
+        Assert.NotNull(job.Method);
+        Assert.Equal(nameof(FakeAsyncMethod), job.Method.Name);
+        Assert.Equal(typeof(JobDescriptorTests).FullName, job.Method.TypeName);
+
+        Assert.NotNull(job.Arguments);
+        Assert.Equal(1, job.Arguments[0].Value);
+        Assert.Equal(typeof(int).FullName, job.Arguments[0].TypeName);
+        Assert.Equal(fakeArgument, job.Arguments[1].Value);
+        Assert.Equal(typeof(FakeDto).FullName, job.Arguments[1].TypeName);
     }
 
     private static Task FakeAsyncMethod(string fakeArg1)

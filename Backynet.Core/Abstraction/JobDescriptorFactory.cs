@@ -26,7 +26,7 @@ public static class JobDescriptorFactory
 
         return new JobDescriptor(method, arguments);
     }
-    
+
     public static JobDescriptor Create(Expression<Action> expression)
     {
         if (expression is not LambdaExpression lambdaExpression)
@@ -61,12 +61,10 @@ public static class JobDescriptorFactory
 
         for (var i = 0; i < methodCallExpression.Arguments.Count; i++)
         {
-            var expression = ResolveMemberExpression(methodCallExpression.Arguments[i]);
+            var value = GetValueFromExp(methodCallExpression.Arguments[i]);
+            var type = value?.GetType();
 
-            var value = GetValueFromExpression(expression);
-            var type = value.GetType();
-
-            var typeName = type.AssemblyQualifiedName ?? throw new InvalidOperationException("Unable to get assembly qualified name.");
+            var typeName = type is null ? null : type.AssemblyQualifiedName ?? throw new InvalidOperationException("Unable to get assembly qualified name.");
             var argument = new Argument(typeName, value);
 
             values[i] = argument;
@@ -75,14 +73,25 @@ public static class JobDescriptorFactory
         return values;
     }
 
-    private static MemberExpression ResolveMemberExpression(Expression expression)
+    private static object? GetValueFromExp(Expression expression)
     {
-        return expression switch
+        if (expression is MemberExpression mem1)
         {
-            MemberExpression memberExpression => memberExpression,
-            UnaryExpression unaryExpression => (MemberExpression)unaryExpression.Operand,
-            _ => throw new NotSupportedException(expression.ToString())
-        };
+            return GetValueFromExpression(mem1);
+        }
+
+        if (expression is UnaryExpression e)
+        {
+            MemberExpression s = (MemberExpression)e.Operand;
+            return GetValueFromExpression(s);
+        }
+
+        if (expression is ConstantExpression c)
+        {
+            return c.Value;
+        }
+
+        throw new NotSupportedException(expression.ToString());
     }
 
     private static object GetValueFromExpression(MemberExpression expression)

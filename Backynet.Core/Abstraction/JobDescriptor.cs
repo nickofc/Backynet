@@ -29,10 +29,10 @@ public readonly struct Method : IMethod
 
 public readonly struct Argument : IArgument
 {
-    public string TypeName { get; init; }
+    public string? TypeName { get; init; }
     public object? Value { get; init; }
 
-    public Argument(string typeName, object value)
+    public Argument(string? typeName, object? value)
     {
         TypeName = typeName;
         Value = value;
