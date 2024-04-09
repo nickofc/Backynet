@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -6,28 +5,17 @@ namespace Backynet.Core.Abstraction;
 
 public static class JobDescriptorFactory
 {
-    private static readonly ConcurrentDictionary<Expression, object> Cache
-        = new ConcurrentDictionary<Expression, object>();
-
     public static JobDescriptor Create(Expression<Func<Task>> expression)
     {
-        if (expression is not LambdaExpression lambdaExpression)
-        {
-            throw new InvalidOperationException("Expression must be LambdaExpression.");
-        }
-
-        if (lambdaExpression.Body is not MethodCallExpression methodCallExpression)
-        {
-            throw new InvalidOperationException("Expression must be MethodCallExpression.");
-        }
-
-        var method = GetMethod(methodCallExpression.Method);
-        var arguments = GetArguments(methodCallExpression);
-
-        return new JobDescriptor(method, arguments);
+        return Create((Expression)expression);
     }
 
     public static JobDescriptor Create(Expression<Action> expression)
+    {
+        return Create((Expression)expression);
+    }
+
+    public static JobDescriptor Create(Expression expression)
     {
         if (expression is not LambdaExpression lambdaExpression)
         {
@@ -50,7 +38,7 @@ public static class JobDescriptorFactory
         var type = methodInfo.DeclaringType ?? throw new InvalidOperationException("Unable to get declaring type.");
 
         var typeName = type.AssemblyQualifiedName ?? throw new InvalidOperationException("Unable to get assembly qualified name.");
-        var methodName = type.Name;
+        var methodName = methodInfo.Name;
 
         return new Method(typeName, methodName);
     }

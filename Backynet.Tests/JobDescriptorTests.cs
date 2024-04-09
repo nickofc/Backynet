@@ -21,11 +21,11 @@ public class JobDescriptorTests
 
         Assert.NotNull(job.Method);
         Assert.Equal(nameof(FakeAsyncMethod), job.Method.Name);
-        Assert.Equal(typeof(JobDescriptorTests).FullName, job.Method.TypeName);
+        Assert.Equal(typeof(JobDescriptorTests).AssemblyQualifiedName, job.Method.TypeName);
 
         Assert.NotNull(job.Arguments);
         Assert.Equal(fakeArgument, job.Arguments[0].Value);
-        Assert.Equal(typeof(string).FullName, job.Arguments[0].TypeName);
+        Assert.Equal(typeof(string).AssemblyQualifiedName, job.Arguments[0].TypeName);
     }
 
     [Fact]
@@ -62,13 +62,39 @@ public class JobDescriptorTests
 
         Assert.NotNull(job.Method);
         Assert.Equal(nameof(FakeAsyncMethod), job.Method.Name);
-        Assert.Equal(typeof(JobDescriptorTests).FullName, job.Method.TypeName);
+        Assert.Equal(typeof(JobDescriptorTests).AssemblyQualifiedName, job.Method.TypeName);
 
         Assert.NotNull(job.Arguments);
         Assert.Equal(1, job.Arguments[0].Value);
-        Assert.Equal(typeof(int).FullName, job.Arguments[0].TypeName);
+        Assert.Equal(typeof(int).AssemblyQualifiedName, job.Arguments[0].TypeName);
         Assert.Equal(fakeArgument, job.Arguments[1].Value);
-        Assert.Equal(typeof(FakeDto).FullName, job.Arguments[1].TypeName);
+        Assert.Equal(typeof(FakeDto).AssemblyQualifiedName, job.Arguments[1].TypeName);
+    }
+
+    [Fact]
+    public void Should_Return_New_JobDescriptor_When_Method_Is_Private()
+    {
+        // arrange
+
+        Expression<Func<Task>> expression = () => FakePrivateAsyncMethod();
+
+        // act
+
+        var job = JobDescriptorFactory.Create(expression);
+
+        // assert
+
+        Assert.NotNull(job.Method);
+        Assert.Equal(nameof(FakePrivateAsyncMethod), job.Method.Name);
+        Assert.Equal(typeof(JobDescriptorTests).AssemblyQualifiedName, job.Method.TypeName);
+
+        Assert.NotNull(job.Arguments);
+        Assert.Empty(job.Arguments);
+    }
+
+    private Task FakePrivateAsyncMethod()
+    {
+        return Task.CompletedTask;
     }
 
     private static Task FakeAsyncMethod(string fakeArg1)
