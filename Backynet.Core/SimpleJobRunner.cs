@@ -12,7 +12,7 @@ internal sealed class SimpleJobRunner : IJobRunner
     {
         var member = Type.GetType(job.Descriptor.Method.TypeName);
         var methodInfo = member.GetMethod(job.Descriptor.Method.Name, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-        var invokeReturnValue = methodInfo.Invoke(null, job.Descriptor.Arguments);
+        var invokeReturnValue = methodInfo.Invoke(null, job.Descriptor.Arguments.Select(x => x.Value).ToArray());
 
         if (invokeReturnValue is Task t)
         {
