@@ -5,17 +5,17 @@ namespace Backynet.Core.Abstraction;
 
 public static class JobDescriptorFactory
 {
-    public static JobDescriptor Create(Expression<Func<Task>> expression)
+    public static IJobDescriptor Create(Expression<Func<Task>> expression)
     {
         return Create((Expression)expression);
     }
 
-    public static JobDescriptor Create(Expression<Action> expression)
+    public static IJobDescriptor Create(Expression<Action> expression)
     {
         return Create((Expression)expression);
     }
 
-    public static JobDescriptor Create(Expression expression)
+    public static IJobDescriptor Create(Expression expression)
     {
         if (expression is not LambdaExpression lambdaExpression)
         {
