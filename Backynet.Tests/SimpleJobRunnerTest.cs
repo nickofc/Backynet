@@ -13,7 +13,9 @@ public class SimpleJobRunnerTest
         var referenceTypeArgument = new FakeDto { Username = "Antoni" };
 
         Expression<Func<Task>> expression = () => FakeAsyncMethod(valueTypeArgument, referenceTypeArgument);
-        var job = JobFactory.Create(expression);
+
+        var jobDescriptor = JobDescriptorFactory.Create(expression);
+        var job = JobFactory.Create(jobDescriptor);
 
         var jobRunner = new SimpleJobRunner();
         await jobRunner.Run(job);
