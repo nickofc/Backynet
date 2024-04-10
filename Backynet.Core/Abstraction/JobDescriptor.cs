@@ -17,8 +17,8 @@ public readonly struct JobDescriptor : IJobDescriptor
 
 public readonly struct Method : IMethod
 {
-    public string TypeName { get; init; }
-    public string Name { get; init; }
+    public string TypeName { get; }
+    public string Name { get; }
 
     public Method(string typeName, string name)
     {
@@ -29,8 +29,8 @@ public readonly struct Method : IMethod
 
 public readonly struct Argument : IArgument
 {
-    public string? TypeName { get; init; }
-    public object? Value { get; init; }
+    public string? TypeName { get; }
+    public object? Value { get; }
 
     public Argument(string? typeName, object? value)
     {
