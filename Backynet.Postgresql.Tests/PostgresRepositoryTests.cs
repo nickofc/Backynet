@@ -27,7 +27,6 @@ public class PostgresRepositoryTests : IDisposable, IAsyncDisposable
 
         Assert.Equal(expectedJob.Id, actualJob.Id);
         Assert.Equal(expectedJob.JobState, actualJob.JobState);
-        Assert.Equal(expectedJob.Descriptor, actualJob.Descriptor);
         Assert.Equal(expectedJob.Descriptor.Method, actualJob.Descriptor.Method);
         Assert.Equal(expectedJob.Descriptor.Arguments, actualJob.Descriptor.Arguments);
     }

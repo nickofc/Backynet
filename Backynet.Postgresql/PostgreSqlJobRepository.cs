@@ -136,7 +136,7 @@ internal class PostgreSqlJobRepository : IJobRepository
 
         var baseType = reader.GetString(3);
         var methodName = reader.GetString(4);
- //        var arguments = _serializer.Deserialize<Argument[]>(reader.GetString(5));
+        var arguments = _serializer.Deserialize<IArgument[]>(reader.GetString(5));
 
         string? serverName = null;
 
@@ -173,7 +173,7 @@ internal class PostgreSqlJobRepository : IJobRepository
             Id = id,
             JobState = (JobState)state,
             CreatedAt = created,
-            Descriptor = new JobDescriptor(method, new IArgument[1]),
+            Descriptor = new JobDescriptor(method, arguments),
             Cron = cron,
             ServerName = serverName,
             GroupName = groupName,
