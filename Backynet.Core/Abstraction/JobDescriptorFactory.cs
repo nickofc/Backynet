@@ -63,20 +63,20 @@ public static class JobDescriptorFactory
 
     private static object? GetValueFromExp(Expression expression)
     {
-        if (expression is MemberExpression mem1)
+        if (expression is MemberExpression memberExpression)
         {
-            return GetValueFromExpression(mem1);
+            return GetValueFromExpression(memberExpression);
         }
 
-        if (expression is UnaryExpression e)
+        if (expression is UnaryExpression unaryExpression)
         {
-            MemberExpression s = (MemberExpression)e.Operand;
-            return GetValueFromExpression(s);
+            var unaryExpressionOperand = (MemberExpression)unaryExpression.Operand;
+            return GetValueFromExpression(unaryExpressionOperand);
         }
 
-        if (expression is ConstantExpression c)
+        if (expression is ConstantExpression constantExpression)
         {
-            return c.Value;
+            return constantExpression.Value;
         }
 
         throw new NotSupportedException(expression.ToString());
