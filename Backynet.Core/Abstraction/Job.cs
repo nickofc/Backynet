@@ -2,6 +2,8 @@ namespace Backynet.Core.Abstraction;
 
 public class Job
 {
+    public static Job Empty() => JobFactory.Create(JobDescriptor.Empty());
+
     public Guid Id { get; set; }
     public JobState JobState { get; set; }
     public DateTimeOffset CreatedAt { get; set; }

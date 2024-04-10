@@ -4,8 +4,6 @@ namespace Backynet.Core.Abstraction;
 
 public static class JobFactory
 {
-    public static readonly Job Empty = Create(JobDescriptor.Empty);
-
     public static Job Create(Expression<Func<Task>> expression)
     {
         ArgumentNullException.ThrowIfNull(expression);
