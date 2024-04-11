@@ -5,13 +5,13 @@ namespace Backynet.Core;
 internal sealed class BackynetServer : IBackynetServer
 {
     private readonly IJobRepository _jobRepository;
-    private readonly IJobRunner _jobRunner;
+    private readonly IJobDescriptorExecutor _jobDescriptorExecutor;
     private readonly BackynetServerOptions _backynetServerOptions;
 
-    public BackynetServer(IJobRepository jobRepository, IJobRunner jobRunner, BackynetServerOptions backynetServerOptions)
+    public BackynetServer(IJobRepository jobRepository, IJobDescriptorExecutor jobDescriptorExecutor, BackynetServerOptions backynetServerOptions)
     {
         _jobRepository = jobRepository;
-        _jobRunner = jobRunner;
+        _jobDescriptorExecutor = jobDescriptorExecutor;
         _backynetServerOptions = backynetServerOptions;
     }
 
@@ -33,7 +33,7 @@ internal sealed class BackynetServer : IBackynetServer
             {
                 try
                 {
-                    await _jobRunner.Run(job);
+                    await _jobDescriptorExecutor.Execute(job.Descriptor, cancellationToken);
                 }
                 catch (Exception e)
                 {

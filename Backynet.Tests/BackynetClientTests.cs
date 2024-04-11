@@ -21,7 +21,7 @@ public class BackynetClientTests
         var serializer = new DefaultJsonSerializer();
         var repository = new PostgreSqlJobRepository(factory, serializer);
 
-        var backynetServer = new BackynetServer(repository, new SimpleJobRunner(), new BackynetServerOptions());
+        var backynetServer = new BackynetServer(repository, new JobDescriptorExecutor(), new BackynetServerOptions());
         await backynetServer.Start(CancellationToken.None);
 
         var backynetClient = new BackynetClient(repository);
@@ -40,7 +40,7 @@ public class BackynetClientTests
         var serializer = new DefaultJsonSerializer();
         var repository = new PostgreSqlJobRepository(factory, serializer);
 
-        var backynetServer = new BackynetServer(repository, new SimpleJobRunner(), new BackynetServerOptions());
+        var backynetServer = new BackynetServer(repository, new JobDescriptorExecutor(), new BackynetServerOptions());
         await backynetServer.Start(CancellationToken.None);
 
         var backynetClient = new BackynetClient(repository);
