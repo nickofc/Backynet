@@ -1,6 +1,6 @@
 namespace Backynet.Core.Abstraction;
 
-public interface IBackynetServer
+public interface IBackynetWorker
 {
     Task Start(CancellationToken cancellationToken);
 }

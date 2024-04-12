@@ -14,6 +14,34 @@ internal class PostgreSqlJobRepository : IJobRepository
         _serializer = serializer;
     }
 
+    public async Task<IReadOnlyCollection<Job>> GetForServer(string serverName, CancellationToken cancellationToken)
+    {
+        await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
+        await using var command = new NpgsqlCommand();
+        command.Connection = connection;
+        command.CommandText = """
+                              select id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at
+                              from jobs
+                              where jobs.server_name == @server_name and state = 2
+                              order by id
+                              limit @limit
+                              """;
+        command.Parameters.Add(new NpgsqlParameter("server_name", serverName));
+        command.Parameters.Add(new NpgsqlParameter("state", (int)JobState.Scheduled));
+        command.Parameters.Add(new NpgsqlParameter<int>("limit", 5));
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        var jobs = new List<Job>((int)reader.Rows);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            var job = ParseJobRow(reader);
+            jobs.Add(job);
+        }
+
+        return jobs;
+    }
+
     public async Task Add(Job job, CancellationToken cancellationToken = default)
     {
         await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);

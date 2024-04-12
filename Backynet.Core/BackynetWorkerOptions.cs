@@ -1,6 +1,6 @@
 namespace Backynet.Core;
 
-internal sealed class BackynetServerOptions
+internal sealed class BackynetWorkerOptions
 {
     private int _maxThreads;
 
@@ -26,7 +26,19 @@ internal sealed class BackynetServerOptions
         }
     }
 
-    public BackynetServerOptions()
+    private TimeSpan _poolingInterval;
+
+    public TimeSpan PoolingInterval
+    {
+        get => _poolingInterval;
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThan(value, TimeSpan.Zero);
+            _poolingInterval = value;
+        }
+    }
+
+    public BackynetWorkerOptions()
     {
         MaxThreads = Environment.ProcessorCount;
         ServerName = Environment.MachineName;
