@@ -13,7 +13,8 @@ public class BackynetHost
 
     public async Task Start(CancellationToken cancellationToken)
     {
-        _ = Heartbeat(cancellationToken);
+        await Heartbeat(cancellationToken);
+
 
         // todo 
         // jak wybrać mastera?
@@ -28,6 +29,7 @@ public class BackynetHost
             cancellationToken.ThrowIfCancellationRequested();
 
             await _controllerService.Heartbeat(_backynetHostOptions.ServerName, cancellationToken);
+            await _controllerService.Purge(cancellationToken);
             await Task.Delay(_backynetHostOptions.HeartbeatInterval, cancellationToken);
         }
     }
