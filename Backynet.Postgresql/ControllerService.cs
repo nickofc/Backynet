@@ -28,6 +28,7 @@ internal sealed class ControllerService : IControllerService
                               """;
         command.Parameters.Add(new NpgsqlParameter("server_name", serverName));
         command.Parameters.Add(new NpgsqlParameter("heartbeat_on", DateTimeOffset.UtcNow));
+        await connection.OpenAsync(cancellationToken);
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
@@ -40,6 +41,7 @@ internal sealed class ControllerService : IControllerService
                               DELETE FROM clients WHERE heartbeat_on < @heartbeat_on;
                               """;
         command.Parameters.Add(new NpgsqlParameter("heartbeat_on", DateTimeOffset.UtcNow - _hostTimeout));
+        await connection.OpenAsync(cancellationToken);
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 }

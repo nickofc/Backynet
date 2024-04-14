@@ -30,6 +30,7 @@ internal class PostgreSqlJobRepository : IJobRepository
         command.Parameters.Add(new NpgsqlParameter("state", (int)JobState.Scheduled));
         command.Parameters.Add(new NpgsqlParameter<int>("limit", 5));
 
+        await connection.OpenAsync(cancellationToken);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         var jobs = new List<Job>((int)reader.Rows);
 
@@ -63,6 +64,8 @@ internal class PostgreSqlJobRepository : IJobRepository
         command.Parameters.Add(new NpgsqlParameter("group_name", job.GroupName is null ? DBNull.Value : job.GroupName));
         command.Parameters.Add(new NpgsqlParameter("next_occurrence_at",
             job.NextOccurrenceAt is null ? DBNull.Value : job.NextOccurrenceAt));
+
+        await connection.OpenAsync(cancellationToken);
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
@@ -77,6 +80,7 @@ internal class PostgreSqlJobRepository : IJobRepository
                               """;
         command.Parameters.Add(new NpgsqlParameter("id", jobId));
 
+        await connection.OpenAsync(cancellationToken);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         var read = await reader.ReadAsync(cancellationToken);
         Job? job = null;
@@ -119,6 +123,7 @@ internal class PostgreSqlJobRepository : IJobRepository
         command.Parameters.Add(new NpgsqlParameter("group_name", job.GroupName));
         command.Parameters.Add(new NpgsqlParameter("next_occurrence_at", job.NextOccurrenceAt));
 
+        await connection.OpenAsync(cancellationToken);
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
@@ -144,6 +149,7 @@ internal class PostgreSqlJobRepository : IJobRepository
         command.Parameters.Add(new NpgsqlParameter("state", (int)JobState.Scheduled));
         command.Parameters.Add(new NpgsqlParameter<int>("limit", count));
 
+        await connection.OpenAsync(cancellationToken);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         var jobs = new List<Job>((int)reader.Rows);
 

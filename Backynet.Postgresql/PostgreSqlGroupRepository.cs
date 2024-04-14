@@ -24,6 +24,7 @@ internal sealed class PostgreSqlGroupRepository : IGroupRepository
                               """;
         command.Parameters.Add(new NpgsqlParameter("group_name", group.GroupName));
         command.Parameters.Add(new NpgsqlParameter<int>("max_concurrent_threads", group.MaxConcurrentThreads));
+        await connection.OpenAsync(cancellationToken);
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
@@ -45,6 +46,7 @@ internal sealed class PostgreSqlGroupRepository : IGroupRepository
                               """;
         command.Parameters.Add(new NpgsqlParameter("group_name", groupName));
         command.Parameters.Add(new NpgsqlParameter<int>("max_concurrent_threads", group.MaxConcurrentThreads));
+        await connection.OpenAsync(cancellationToken);
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
 }
