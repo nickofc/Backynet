@@ -11,6 +11,7 @@ public class PostgreSqlConnectionFactoryTests
         var factory = new NpgsqlConnectionFactory(TestContext.ConnectionString);
         await using var connection = await factory.GetAsync();
         await using var command = new NpgsqlCommand("SELECT 1", connection);
+        await connection.OpenAsync();
         await command.ExecuteReaderAsync();
     }
 }
