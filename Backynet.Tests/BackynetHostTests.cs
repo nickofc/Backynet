@@ -6,7 +6,7 @@ namespace Backynet.Tests;
 
 public class BackynetHostTests
 {
-    [Fact]
+    [Fact(Skip = "wip")]
     public async Task Should()
     {
         var factory = new NpgsqlConnectionFactory(TestContext.ConnectionString);

@@ -10,13 +10,9 @@ public class BackynetClientTests
         WasExecuted.Reset();
     }
 
-    [Fact]
+    [Fact(Timeout = 60 * 1000)]
     public async Task Should_Execute_Action_Job_When_Job_Was_Enqueued()
     {
-        // todo: move to sut? 
-        using var timeout = new CancellationTokenSource();
-        timeout.CancelAfter(TimeSpan.FromSeconds(1000));
-
         var factory = new NpgsqlConnectionFactory(TestContext.ConnectionString);
         var serializer = new DefaultJsonSerializer();
         var repository = new PostgreSqlJobRepository(factory, serializer);
@@ -27,15 +23,12 @@ public class BackynetClientTests
         var backynetClient = new BackynetClient(repository);
         await backynetClient.EnqueueAsync(() => FakeSyncMethod(), CancellationToken.None);
 
-        WasExecuted.Wait(timeout.Token);
+        WasExecuted.Wait();
     }
 
-    [Fact]
+    [Fact(Timeout = 60 * 1000)]
     public async Task Should_Execute_Func_Job_When_Job_Was_Enqueued()
     {
-        using var timeout = new CancellationTokenSource();
-        timeout.CancelAfter(TimeSpan.FromSeconds(1000));
-
         var factory = new NpgsqlConnectionFactory(TestContext.ConnectionString);
         var serializer = new DefaultJsonSerializer();
         var repository = new PostgreSqlJobRepository(factory, serializer);
@@ -46,7 +39,7 @@ public class BackynetClientTests
         var backynetClient = new BackynetClient(repository);
         await backynetClient.EnqueueAsync(() => FakeAsyncMethod(), CancellationToken.None);
 
-        WasExecuted.Wait(timeout.Token);
+        WasExecuted.Wait();
     }
 
     private static readonly ManualResetEventSlim WasExecuted = new();
