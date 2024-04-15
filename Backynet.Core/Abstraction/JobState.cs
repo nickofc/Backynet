@@ -4,7 +4,10 @@ public enum JobState
 {
     Unknown,
     Created,
+    Enqueued,
     Scheduled,
+    Processing,
     Failed,
-    Completed
+    Succeeded,
+    Deleted
 }
