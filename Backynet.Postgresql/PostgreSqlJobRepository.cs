@@ -20,11 +20,18 @@ internal class PostgreSqlJobRepository : IJobRepository
         await using var command = new NpgsqlCommand();
         command.Connection = connection;
         command.CommandText = """
-                              select id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at
-                              from jobs
-                              where jobs.server_name == @server_name and state = 2
-                              order by id
-                              limit @limit
+                              WITH unassigned_jobs
+                                  AS
+                                  (
+                                  SELECT *
+                                  FROM jobs
+                                  WHERE (jobs.server_name IS NULL OR jobs.id IN (SELECT id FROM servers WHERE heartbeat_on < @heartbeat_on)) AND jobs.state = @state
+                                  )
+                              
+                              UPDATE jobs
+                              SET jobs.server_name = @server_name
+                              WHERE id IN (SELECT id FROM unassigned_jobs LIMIT @limit)
+                              RETURNING id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at
                               """;
         command.Parameters.Add(new NpgsqlParameter("server_name", serverName));
         command.Parameters.Add(new NpgsqlParameter("state", (int)JobState.Scheduled));
