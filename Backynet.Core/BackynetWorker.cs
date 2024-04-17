@@ -20,14 +20,22 @@ internal sealed class BackynetWorker : IBackynetWorker
 
     public Task Start(CancellationToken cancellationToken)
     {
-        var heartbeatTask = _controllerService.Heartbeat(_backynetWorkerOptions.ServerName, cancellationToken);
-        var workerTask = StartCore(cancellationToken);
-
-        var combinedTasks = Task.WhenAll(heartbeatTask, workerTask);
+        var combinedTasks = Task.WhenAll(HeartbeatTask(cancellationToken), WorkerTask(cancellationToken));
         return combinedTasks.IsCompleted ? combinedTasks : Task.CompletedTask;
     }
 
-    private async Task StartCore(CancellationToken cancellationToken)
+    private async Task HeartbeatTask(CancellationToken cancellationToken)
+    {
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await _controllerService.Heartbeat("instance-dev", cancellationToken);
+            await Task.Delay(1000, cancellationToken);
+        }
+    }
+
+    private async Task WorkerTask(CancellationToken cancellationToken)
     {
         while (true)
         {
@@ -43,6 +51,9 @@ internal sealed class BackynetWorker : IBackynetWorker
                 try
                 {
                     await _jobDescriptorExecutor.Execute(job.Descriptor, cancellationToken);
+
+                    job.JobState = JobState.Succeeded;
+                    await _jobRepository.Update(job.Id, job, cancellationToken);
                 }
                 catch (Exception)
                 {
