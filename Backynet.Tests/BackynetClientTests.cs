@@ -1,5 +1,6 @@
 using Backynet.Core;
 using Backynet.Postgresql;
+using Backynet.PostgreSql;
 
 namespace Backynet.Tests;
 
@@ -16,8 +17,9 @@ public class BackynetClientTests
         var factory = new NpgsqlConnectionFactory(TestContext.ConnectionString);
         var serializer = new DefaultJsonSerializer();
         var repository = new PostgreSqlJobRepository(factory, serializer);
+        var controllerService = new ControllerService(factory, TimeSpan.FromSeconds(20));
 
-        var backynetServer = new BackynetWorker(repository, new JobDescriptorExecutor(), new BackynetWorkerOptions());
+        var backynetServer = new BackynetWorker(repository, new JobDescriptorExecutor(), new BackynetWorkerOptions(), controllerService);
         await backynetServer.Start(CancellationToken.None);
 
         var backynetClient = new BackynetClient(repository);
@@ -32,8 +34,9 @@ public class BackynetClientTests
         var factory = new NpgsqlConnectionFactory(TestContext.ConnectionString);
         var serializer = new DefaultJsonSerializer();
         var repository = new PostgreSqlJobRepository(factory, serializer);
+        var controllerService = new ControllerService(factory, TimeSpan.FromSeconds(20));
 
-        var backynetServer = new BackynetWorker(repository, new JobDescriptorExecutor(), new BackynetWorkerOptions());
+        var backynetServer = new BackynetWorker(repository, new JobDescriptorExecutor(), new BackynetWorkerOptions(), controllerService);
         await backynetServer.Start(CancellationToken.None);
 
         var backynetClient = new BackynetClient(repository);
