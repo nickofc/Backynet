@@ -25,16 +25,17 @@ internal class PostgreSqlJobRepository : IJobRepository
                                   (
                                   SELECT *
                                   FROM jobs
-                                  WHERE (jobs.server_name IS NULL OR jobs.id IN (SELECT id FROM servers WHERE heartbeat_on < @heartbeat_on)) AND jobs.state = @state
+                                  WHERE (server_name IS NULL OR id IN (SELECT id FROM servers WHERE heartbeat_on < @heartbeat_on)) AND state = @state
                                   )
                               
                               UPDATE jobs
-                              SET jobs.server_name = @server_name
+                              SET server_name = @server_name
                               WHERE id IN (SELECT id FROM unassigned_jobs LIMIT @limit)
                               RETURNING id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at
                               """;
         command.Parameters.Add(new NpgsqlParameter("server_name", serverName));
         command.Parameters.Add(new NpgsqlParameter("state", (int)JobState.Scheduled));
+        command.Parameters.Add(new NpgsqlParameter("heartbeat_on", DateTimeOffset.UtcNow - TimeSpan.FromSeconds(30)));
         command.Parameters.Add(new NpgsqlParameter<int>("limit", 5));
 
         await connection.OpenAsync(cancellationToken);
