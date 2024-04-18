@@ -14,7 +14,7 @@ internal class PostgreSqlJobRepository : IJobRepository
         _serializer = serializer;
     }
 
-    public async Task<IReadOnlyCollection<Job>> GetForServer(string serverName, CancellationToken cancellationToken)
+    public async Task<IReadOnlyCollection<Job>> GetForServer(string serverName, CancellationToken cancellationToken = default)
     {
         await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
         await using var command = new NpgsqlCommand();
@@ -133,41 +133,6 @@ internal class PostgreSqlJobRepository : IJobRepository
 
         await connection.OpenAsync(cancellationToken);
         await command.ExecuteNonQueryAsync(cancellationToken);
-    }
-
-    public async Task<IReadOnlyCollection<Job>> Acquire(string serverName, int count,
-        CancellationToken cancellationToken = default)
-    {
-        await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
-        await using var command = new NpgsqlCommand();
-        command.Connection = connection;
-        command.CommandText = """
-                              update jobs
-                              set
-                                  server_name = @server_name,
-                                  state = @state
-                              where jobs.id in (select id
-                                                from jobs
-                                                where jobs.server_name is null and state = 2
-                                                order by id
-                                                limit @limit)
-                              RETURNING id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at
-                              """;
-        command.Parameters.Add(new NpgsqlParameter("server_name", serverName));
-        command.Parameters.Add(new NpgsqlParameter("state", (int)JobState.Scheduled));
-        command.Parameters.Add(new NpgsqlParameter<int>("limit", count));
-
-        await connection.OpenAsync(cancellationToken);
-        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-        var jobs = new List<Job>((int)reader.Rows);
-
-        while (await reader.ReadAsync(cancellationToken))
-        {
-            var job = ParseJobRow(reader);
-            jobs.Add(job);
-        }
-
-        return jobs;
     }
 
     private Job ParseJobRow(NpgsqlDataReader reader)

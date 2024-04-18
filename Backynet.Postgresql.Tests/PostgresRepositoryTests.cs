@@ -32,7 +32,7 @@ public class PostgresRepositoryTests : IDisposable, IAsyncDisposable
     }
 
     [Fact]
-    public async Task Should_Acquire_Job_When_Acquire_Is_Called()
+    public async Task Should_Acquire_Job_When_GetForServer_Is_Called()
     {
         // arrange
 
@@ -50,12 +50,12 @@ public class PostgresRepositoryTests : IDisposable, IAsyncDisposable
 
         //act 
 
-        var jobs = await repository.Acquire(serverName, 2);
+        var jobs = await repository.GetForServer(serverName);
 
         // assert
 
-        Assert.Equal(2, jobs.Count);
-        // Assert.True(jobs.All(x => x.ServerName == serverName));
+        Assert.True(jobs.Count > 0);
+        Assert.True(jobs.All(x => x.ServerName == serverName));
     }
 
     public async ValueTask DisposeAsync()
