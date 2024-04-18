@@ -30,8 +30,8 @@ internal sealed class BackynetWorker : IBackynetWorker
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            await _controllerService.Heartbeat("instance-dev", cancellationToken);
-            await Task.Delay(1000, cancellationToken);
+            await _controllerService.Heartbeat(_backynetWorkerOptions.ServerName, cancellationToken);
+            await Task.Delay(_backynetWorkerOptions.HeartbeatInterval, cancellationToken);
         }
     }
 
@@ -62,6 +62,7 @@ internal sealed class BackynetWorker : IBackynetWorker
                 }
             }
 
+            // todo: pooling only if there is no date
             await Task.Delay(_backynetWorkerOptions.PoolingInterval, cancellationToken);
         }
     }

@@ -38,9 +38,23 @@ internal sealed class BackynetWorkerOptions
         }
     }
 
+    private TimeSpan _heartbeatInterval;
+
+    public TimeSpan HeartbeatInterval
+    {
+        get => _heartbeatInterval;
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThan(value, TimeSpan.Zero);
+            _heartbeatInterval = value;
+        }
+    }
+
     public BackynetWorkerOptions()
     {
         MaxThreads = Environment.ProcessorCount;
         ServerName = Environment.MachineName;
+        PoolingInterval = TimeSpan.FromSeconds(5);
+        HeartbeatInterval = TimeSpan.FromSeconds(1);
     }
 }
