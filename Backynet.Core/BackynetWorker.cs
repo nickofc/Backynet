@@ -1,3 +1,4 @@
+using System.Threading.Channels;
 using Backynet.Core.Abstraction;
 
 namespace Backynet.Core;
@@ -5,15 +6,15 @@ namespace Backynet.Core;
 internal sealed class BackynetWorker : IBackynetWorker
 {
     private readonly IJobRepository _jobRepository;
-    private readonly IJobDescriptorExecutor _jobDescriptorExecutor;
+    private readonly IJobExecutor _jobExecutor;
     private readonly BackynetWorkerOptions _backynetWorkerOptions;
     private readonly IControllerService _controllerService;
 
-    public BackynetWorker(IJobRepository jobRepository, IJobDescriptorExecutor jobDescriptorExecutor,
+    public BackynetWorker(IJobRepository jobRepository, IJobExecutor jobExecutor,
         BackynetWorkerOptions backynetWorkerOptions, IControllerService controllerService)
     {
         _jobRepository = jobRepository;
-        _jobDescriptorExecutor = jobDescriptorExecutor;
+        _jobExecutor = jobExecutor;
         _backynetWorkerOptions = backynetWorkerOptions;
         _controllerService = controllerService;
     }
@@ -37,33 +38,49 @@ internal sealed class BackynetWorker : IBackynetWorker
 
     private async Task WorkerTask(CancellationToken cancellationToken)
     {
-        while (true)
+        var channel = Channel.CreateBounded<Job>(10);
+        IITheadPool threadPool = null;
+
+        await Task.WhenAll(ProducerTask(), ConsumerTask());
+        
+        return;
+
+        async Task ProducerTask()
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var jobs = await _jobRepository.GetForServer(_backynetWorkerOptions.ServerName, cancellationToken);
-
-            // todo: replace with thread pool
-            // todo: state machine for jobs?
-
-            foreach (var job in jobs)
+            while (true)
             {
-                try
-                {
-                    await _jobDescriptorExecutor.Execute(job.Descriptor, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    job.JobState = JobState.Succeeded;
-                    await _jobRepository.Update(job.Id, job, cancellationToken);
-                }
-                catch (Exception)
+                if (!await channel.Writer.WaitToWriteAsync(cancellationToken))
                 {
-                    job.JobState = JobState.Failed;
-                    await _jobRepository.Update(job.Id, job, cancellationToken);
+                    continue;
+                }
+
+                var jobs = await _jobRepository.GetForServer(_backynetWorkerOptions.ServerName, cancellationToken);
+
+                if (jobs.Count == 0)
+                {
+                    await Task.Delay(_backynetWorkerOptions.PoolingInterval, cancellationToken);
+                    continue;
+                }
+
+                foreach (var job in jobs)
+                {
+                    await channel.Writer.WriteAsync(job, cancellationToken);
                 }
             }
+        }
 
-            // todo: pooling only if there is no date
-            await Task.Delay(_backynetWorkerOptions.PoolingInterval, cancellationToken);
+        async Task ConsumerTask()
+        {
+            while (true)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                await threadPool.WaitToPostAsync(cancellationToken);
+                var s = await channel.Reader.ReadAsync(cancellationToken);
+                await threadPool.PostAsync(() => _jobExecutor.Execute(s, cancellationToken));
+            }
         }
     }
 }
