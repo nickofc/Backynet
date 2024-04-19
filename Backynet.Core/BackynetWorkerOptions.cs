@@ -1,7 +1,16 @@
 namespace Backynet.Core;
 
-internal sealed class BackynetWorkerOptions
+public class BackynetWorkerOptions
 {
+    public BackynetWorkerOptions()
+    {
+        MaxThreads = Environment.ProcessorCount;
+        ServerName = Environment.MachineName;
+        PoolingInterval = TimeSpan.FromSeconds(5);
+        HeartbeatInterval = TimeSpan.FromSeconds(10);
+        MaximumTimeWithoutHeartbeat = TimeSpan.FromMinutes(1);
+    }
+
     private int _maxThreads;
 
     public int MaxThreads
@@ -50,11 +59,15 @@ internal sealed class BackynetWorkerOptions
         }
     }
 
-    public BackynetWorkerOptions()
+    private TimeSpan _maximumTimeWithoutHeartbeat;
+
+    public TimeSpan MaximumTimeWithoutHeartbeat
     {
-        MaxThreads = Environment.ProcessorCount;
-        ServerName = Environment.MachineName;
-        PoolingInterval = TimeSpan.FromSeconds(5);
-        HeartbeatInterval = TimeSpan.FromSeconds(1);
+        get => _maximumTimeWithoutHeartbeat;
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfLessThan(value, TimeSpan.Zero);
+            _maximumTimeWithoutHeartbeat = value;
+        }
     }
 }

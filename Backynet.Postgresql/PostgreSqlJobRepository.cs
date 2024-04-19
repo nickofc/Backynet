@@ -1,3 +1,4 @@
+using Backynet.Core;
 using Backynet.Core.Abstraction;
 using Npgsql;
 
@@ -7,14 +8,16 @@ internal class PostgreSqlJobRepository : IJobRepository
 {
     private readonly NpgsqlConnectionFactory _npgsqlConnectionFactory;
     private readonly ISerializer _serializer;
+    private readonly BackynetWorkerOptions _options;
 
-    public PostgreSqlJobRepository(NpgsqlConnectionFactory npgsqlConnectionFactory, ISerializer serializer)
+    public PostgreSqlJobRepository(NpgsqlConnectionFactory npgsqlConnectionFactory, ISerializer serializer, BackynetWorkerOptions options)
     {
         _npgsqlConnectionFactory = npgsqlConnectionFactory;
         _serializer = serializer;
+        _options = options;
     }
 
-    public async Task<IReadOnlyCollection<Job>> GetForServer(string serverName, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<Job>> Acquire(string serverName, int maxJobsCount, CancellationToken cancellationToken = default)
     {
         await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
         await using var command = new NpgsqlCommand();
@@ -30,13 +33,13 @@ internal class PostgreSqlJobRepository : IJobRepository
                               
                               UPDATE jobs
                               SET server_name = @server_name
-                              WHERE id IN (SELECT id FROM unassigned_jobs LIMIT @limit)
+                              WHERE id IN (SELECT id FROM unassigned_jobs LIMIT @max_jobs_count)
                               RETURNING id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at
                               """;
         command.Parameters.Add(new NpgsqlParameter("server_name", serverName));
-        command.Parameters.Add(new NpgsqlParameter("state", (int)JobState.Scheduled));
-        command.Parameters.Add(new NpgsqlParameter("heartbeat_on", DateTimeOffset.UtcNow - TimeSpan.FromSeconds(30)));
-        command.Parameters.Add(new NpgsqlParameter<int>("limit", 5));
+        command.Parameters.Add(new NpgsqlParameter("state", JobState.Scheduled));
+        command.Parameters.Add(new NpgsqlParameter("heartbeat_on", DateTimeOffset.UtcNow - _options.MaximumTimeWithoutHeartbeat));
+        command.Parameters.Add(new NpgsqlParameter("max_jobs_count", maxJobsCount));
 
         await connection.OpenAsync(cancellationToken);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);

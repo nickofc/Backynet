@@ -9,19 +9,25 @@ internal sealed class BackynetWorker : IBackynetWorker
     private readonly IJobExecutor _jobExecutor;
     private readonly BackynetWorkerOptions _backynetWorkerOptions;
     private readonly IControllerService _controllerService;
+    private readonly IThreadPool _threadPool;
 
-    public BackynetWorker(IJobRepository jobRepository, IJobExecutor jobExecutor,
-        BackynetWorkerOptions backynetWorkerOptions, IControllerService controllerService)
+    public BackynetWorker(
+        IJobRepository jobRepository,
+        IJobExecutor jobExecutor,
+        BackynetWorkerOptions backynetWorkerOptions,
+        IControllerService controllerService,
+        IThreadPool threadPool)
     {
         _jobRepository = jobRepository;
         _jobExecutor = jobExecutor;
         _backynetWorkerOptions = backynetWorkerOptions;
         _controllerService = controllerService;
+        _threadPool = threadPool;
     }
 
     public Task Start(CancellationToken cancellationToken)
     {
-        var combinedTasks = Task.WhenAll(HeartbeatTask(cancellationToken), WorkerTask(cancellationToken));
+        var combinedTasks = Task.WhenAll(HeartbeatTask(cancellationToken), MainTask(cancellationToken));
         return combinedTasks.IsCompleted ? combinedTasks : Task.CompletedTask;
     }
 
@@ -36,13 +42,11 @@ internal sealed class BackynetWorker : IBackynetWorker
         }
     }
 
-    private async Task WorkerTask(CancellationToken cancellationToken)
+    private async Task MainTask(CancellationToken cancellationToken)
     {
         var channel = Channel.CreateBounded<Job>(10);
-        IITheadPool threadPool = null;
-
         await Task.WhenAll(ProducerTask(), ConsumerTask());
-        
+
         return;
 
         async Task ProducerTask()
@@ -56,7 +60,7 @@ internal sealed class BackynetWorker : IBackynetWorker
                     continue;
                 }
 
-                var jobs = await _jobRepository.GetForServer(_backynetWorkerOptions.ServerName, cancellationToken);
+                var jobs = await _jobRepository.Acquire(_backynetWorkerOptions.ServerName, 1, cancellationToken);
 
                 if (jobs.Count == 0)
                 {
@@ -77,9 +81,8 @@ internal sealed class BackynetWorker : IBackynetWorker
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                await threadPool.WaitToPostAsync(cancellationToken);
-                var s = await channel.Reader.ReadAsync(cancellationToken);
-                await threadPool.PostAsync(() => _jobExecutor.Execute(s, cancellationToken));
+                using var handle = await _threadPool.Acquire(cancellationToken);
+                var item = await channel.Reader.WaitToReadAsync(cancellationToken);
             }
         }
     }

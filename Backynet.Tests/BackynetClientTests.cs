@@ -16,13 +16,14 @@ public class BackynetClientTests
         {
             var factory = new NpgsqlConnectionFactory(TestContext.ConnectionString);
             var serializer = new DefaultJsonSerializer();
-            var repository = new PostgreSqlJobRepository(factory, serializer);
+            var options = new BackynetWorkerOptions();
+            var repository = new PostgreSqlJobRepository(factory, serializer, options);
             var controllerService = new ControllerService(factory, TimeSpan.FromSeconds(20));
             var jobDescriptorExecutor = new JobDescriptorExecutor();
             var jobExecutor = new JobExecutor(jobDescriptorExecutor, repository);
-            var options = new BackynetWorkerOptions();
+            var threadPool = new DefaultThreadPool();
 
-            BackynetWorker = new BackynetWorker(repository, jobExecutor, options, controllerService);
+            BackynetWorker = new BackynetWorker(repository, jobExecutor, options, controllerService, threadPool);
             BackynetClient = new BackynetClient(repository);
         }
 
