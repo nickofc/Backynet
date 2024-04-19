@@ -1,8 +1,8 @@
 namespace Backynet.Core;
 
-public class BackynetWorkerOptions
+public class BackynetServerOptions
 {
-    public BackynetWorkerOptions()
+    public BackynetServerOptions()
     {
         MaxThreads = Environment.ProcessorCount;
         ServerName = Environment.MachineName;

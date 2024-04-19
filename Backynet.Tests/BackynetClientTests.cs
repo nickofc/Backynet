@@ -9,21 +9,21 @@ public class BackynetClientTests
 {
     public class Sut : IDisposable
     {
-        public IBackynetWorker BackynetWorker { get; private set; }
+        public IBackynetServer BackynetServer { get; private set; }
         public IBackynetClient BackynetClient { get; private set; }
 
         public Sut()
         {
             var factory = new NpgsqlConnectionFactory(TestContext.ConnectionString);
             var serializer = new DefaultJsonSerializer();
-            var options = new BackynetWorkerOptions();
+            var options = new BackynetServerOptions();
             var repository = new PostgreSqlJobRepository(factory, serializer, options);
-            var controllerService = new ControllerService(factory, TimeSpan.FromSeconds(20));
+            var controllerService = new BackynetServerService(factory, TimeSpan.FromSeconds(20));
             var jobDescriptorExecutor = new JobDescriptorExecutor();
             var jobExecutor = new JobExecutor(jobDescriptorExecutor, repository);
             var threadPool = new DefaultThreadPool(10);
 
-            BackynetWorker = new BackynetWorker(repository, jobExecutor, options, controllerService, threadPool);
+            BackynetServer = new BackynetServer(repository, jobExecutor, options, controllerService, threadPool);
             BackynetClient = new BackynetClient(repository);
         }
 
@@ -33,7 +33,7 @@ public class BackynetClientTests
         public async Task Start()
         {
             _cancellationTokenSource = new CancellationTokenSource();
-            _workerTask = BackynetWorker.Start(_cancellationTokenSource.Token);
+            _workerTask = BackynetServer.Start(_cancellationTokenSource.Token);
 
             await _workerTask;
         }

@@ -5,15 +5,15 @@ namespace Backynet.AspNetCore;
 
 internal sealed class BackynetServerHostedService : BackgroundService
 {
-    private readonly IBackynetWorker _backynetWorker;
+    private readonly IBackynetServer _backynetServer;
 
-    public BackynetServerHostedService(IBackynetWorker backynetWorker)
+    public BackynetServerHostedService(IBackynetServer backynetServer)
     {
-        _backynetWorker = backynetWorker;
+        _backynetServer = backynetServer;
     }
 
     protected override Task ExecuteAsync(CancellationToken cancellationToken)
     {
-        return _backynetWorker.Start(cancellationToken);
+        return _backynetServer.Start(cancellationToken);
     }
 }

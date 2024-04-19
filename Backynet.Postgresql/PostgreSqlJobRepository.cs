@@ -8,9 +8,9 @@ internal class PostgreSqlJobRepository : IJobRepository
 {
     private readonly NpgsqlConnectionFactory _npgsqlConnectionFactory;
     private readonly ISerializer _serializer;
-    private readonly BackynetWorkerOptions _options;
+    private readonly BackynetServerOptions _options;
 
-    public PostgreSqlJobRepository(NpgsqlConnectionFactory npgsqlConnectionFactory, ISerializer serializer, BackynetWorkerOptions options)
+    public PostgreSqlJobRepository(NpgsqlConnectionFactory npgsqlConnectionFactory, ISerializer serializer, BackynetServerOptions options)
     {
         _npgsqlConnectionFactory = npgsqlConnectionFactory;
         _serializer = serializer;

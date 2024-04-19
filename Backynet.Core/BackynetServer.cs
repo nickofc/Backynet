@@ -3,25 +3,25 @@ using Backynet.Core.Abstraction;
 
 namespace Backynet.Core;
 
-internal sealed class BackynetWorker : IBackynetWorker
+internal sealed class BackynetServer : IBackynetServer
 {
     private readonly IJobRepository _jobRepository;
     private readonly IJobExecutor _jobExecutor;
-    private readonly BackynetWorkerOptions _backynetWorkerOptions;
-    private readonly IControllerService _controllerService;
+    private readonly BackynetServerOptions _backynetServerOptions;
+    private readonly IBackynetServerService _backynetServerService;
     private readonly IThreadPool _threadPool;
 
-    public BackynetWorker(
+    public BackynetServer(
         IJobRepository jobRepository,
         IJobExecutor jobExecutor,
-        BackynetWorkerOptions backynetWorkerOptions,
-        IControllerService controllerService,
+        BackynetServerOptions backynetServerOptions,
+        IBackynetServerService backynetServerService,
         IThreadPool threadPool)
     {
         _jobRepository = jobRepository;
         _jobExecutor = jobExecutor;
-        _backynetWorkerOptions = backynetWorkerOptions;
-        _controllerService = controllerService;
+        _backynetServerOptions = backynetServerOptions;
+        _backynetServerService = backynetServerService;
         _threadPool = threadPool;
     }
 
@@ -37,8 +37,8 @@ internal sealed class BackynetWorker : IBackynetWorker
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            await _controllerService.Heartbeat(_backynetWorkerOptions.ServerName, cancellationToken);
-            await Task.Delay(_backynetWorkerOptions.HeartbeatInterval, cancellationToken);
+            await _backynetServerService.Heartbeat(_backynetServerOptions.ServerName, cancellationToken);
+            await Task.Delay(_backynetServerOptions.HeartbeatInterval, cancellationToken);
         }
     }
 
@@ -62,11 +62,11 @@ internal sealed class BackynetWorker : IBackynetWorker
                     throw new InvalidOperationException("There will be no data.");
                 }
 
-                var jobs = await _jobRepository.Acquire(_backynetWorkerOptions.ServerName, 1, cancellationToken);
+                var jobs = await _jobRepository.Acquire(_backynetServerOptions.ServerName, 1, cancellationToken);
 
                 if (jobs.Count == 0)
                 {
-                    await Task.Delay(_backynetWorkerOptions.PoolingInterval, cancellationToken);
+                    await Task.Delay(_backynetServerOptions.PoolingInterval, cancellationToken);
                     continue;
                 }
 

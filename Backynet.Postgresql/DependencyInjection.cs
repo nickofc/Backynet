@@ -5,10 +5,21 @@ namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DependencyInjection
 {
-    public static BackynetConfigurationBuilder UsePostgreSql(
-        this BackynetConfigurationBuilder backynetConfigurationBuilder,
-        Action<BackynetPosgreSqlServerOptions> configure)
+    public static BackynetServerOptionsBuilder UsePostgreSql(
+        this BackynetServerOptionsBuilder backynetConfigurationBuilder,
+        Action<BackynetServerPostgreSqlOptionsBuilder> configure)
     {
         return backynetConfigurationBuilder;
+    }
+}
+
+public class BackynetServerPostgreSqlOptionsBuilder
+{
+    internal BackynetServerPostgreSqlOptions Options { get; } = new();
+
+    public BackynetServerPostgreSqlOptionsBuilder UseConnectionString(string connectionString)
+    {
+        Options.ConnectionString = connectionString;
+        return this;
     }
 }
