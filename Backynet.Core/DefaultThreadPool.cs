@@ -1,10 +1,15 @@
 namespace Backynet.Core;
 
-public class DefaultThreadPool : IThreadPool
+public sealed class DefaultThreadPool : IThreadPool, IDisposable
 {
-    private readonly SemaphoreSlim _semaphoreSlim = new(10);
-    
-    public async Task<IDisposable> Acquire(CancellationToken cancellationToken)
+    private readonly SemaphoreSlim _semaphoreSlim;
+
+    public DefaultThreadPool(int threadCount)
+    {
+        _semaphoreSlim = new SemaphoreSlim(threadCount);
+    }
+
+    public async Task<IDisposable> Acquire(CancellationToken cancellationToken = default)
     {
         await _semaphoreSlim.WaitAsync(cancellationToken);
         return new ThreadPoolScope(_semaphoreSlim);
@@ -12,7 +17,17 @@ public class DefaultThreadPool : IThreadPool
 
     public Task PostAsync(Func<Task> func)
     {
-        throw new NotImplementedException();
+        ThreadPool.QueueUserWorkItem(new WaitCallback(state =>
+        {
+            var d = state as Func<Task>;
+            _ = d();
+        }), func);
+        return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        _semaphoreSlim.Dispose();
     }
 }
 

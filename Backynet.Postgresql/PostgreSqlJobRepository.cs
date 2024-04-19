@@ -36,10 +36,10 @@ internal class PostgreSqlJobRepository : IJobRepository
                               WHERE id IN (SELECT id FROM unassigned_jobs LIMIT @max_jobs_count)
                               RETURNING id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at
                               """;
-        command.Parameters.Add(new NpgsqlParameter("server_name", serverName));
-        command.Parameters.Add(new NpgsqlParameter("state", JobState.Scheduled));
-        command.Parameters.Add(new NpgsqlParameter("heartbeat_on", DateTimeOffset.UtcNow - _options.MaximumTimeWithoutHeartbeat));
-        command.Parameters.Add(new NpgsqlParameter("max_jobs_count", maxJobsCount));
+        command.Parameters.Add(new NpgsqlParameter<string>("server_name", serverName));
+        command.Parameters.Add(new NpgsqlParameter<int>("state", (int) JobState.Scheduled));
+        command.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("heartbeat_on", DateTimeOffset.UtcNow - _options.MaximumTimeWithoutHeartbeat));
+        command.Parameters.Add(new NpgsqlParameter<int>("max_jobs_count", maxJobsCount));
 
         await connection.OpenAsync(cancellationToken);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);

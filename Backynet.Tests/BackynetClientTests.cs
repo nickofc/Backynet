@@ -21,7 +21,7 @@ public class BackynetClientTests
             var controllerService = new ControllerService(factory, TimeSpan.FromSeconds(20));
             var jobDescriptorExecutor = new JobDescriptorExecutor();
             var jobExecutor = new JobExecutor(jobDescriptorExecutor, repository);
-            var threadPool = new DefaultThreadPool();
+            var threadPool = new DefaultThreadPool(10);
 
             BackynetWorker = new BackynetWorker(repository, jobExecutor, options, controllerService, threadPool);
             BackynetClient = new BackynetClient(repository);

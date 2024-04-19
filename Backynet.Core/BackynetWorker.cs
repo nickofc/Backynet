@@ -45,6 +45,8 @@ internal sealed class BackynetWorker : IBackynetWorker
     private async Task MainTask(CancellationToken cancellationToken)
     {
         var channel = Channel.CreateBounded<Job>(10);
+        using var semaphore = new SemaphoreSlim(10);
+
         await Task.WhenAll(ProducerTask(), ConsumerTask());
 
         return;
@@ -57,7 +59,7 @@ internal sealed class BackynetWorker : IBackynetWorker
 
                 if (!await channel.Writer.WaitToWriteAsync(cancellationToken))
                 {
-                    continue;
+                    throw new InvalidOperationException("There will be no data.");
                 }
 
                 var jobs = await _jobRepository.Acquire(_backynetWorkerOptions.ServerName, 1, cancellationToken);
@@ -81,8 +83,27 @@ internal sealed class BackynetWorker : IBackynetWorker
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                using var handle = await _threadPool.Acquire(cancellationToken);
-                var item = await channel.Reader.WaitToReadAsync(cancellationToken);
+                await semaphore.WaitAsync(cancellationToken);
+
+                if (!await channel.Reader.WaitToReadAsync(cancellationToken))
+                {
+                    semaphore.Release();
+                    throw new InvalidOperationException("There will be no data.");
+                }
+
+                var job = await channel.Reader.ReadAsync(cancellationToken);
+
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _jobExecutor.Execute(job, cancellationToken);
+                    }
+                    finally
+                    {
+                        semaphore.Release();
+                    }
+                }, cancellationToken);
             }
         }
     }
