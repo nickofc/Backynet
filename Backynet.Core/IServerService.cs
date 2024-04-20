@@ -1,6 +1,6 @@
 namespace Backynet.Core;
 
-public interface IBackynetServerService
+public interface IServerService
 {
     Task Heartbeat(string serverName, CancellationToken cancellationToken = default);
 }

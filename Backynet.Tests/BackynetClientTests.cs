@@ -18,7 +18,7 @@ public class BackynetClientTests
             var serializer = new DefaultJsonSerializer();
             var options = new BackynetServerOptions();
             var repository = new PostgreSqlJobRepository(factory, serializer, options);
-            var controllerService = new BackynetServerService(factory, TimeSpan.FromSeconds(20));
+            var controllerService = new ServerService(factory, TimeSpan.FromSeconds(20));
             var jobDescriptorExecutor = new JobDescriptorExecutor();
             var jobExecutor = new JobExecutor(jobDescriptorExecutor, repository);
             var threadPool = new DefaultThreadPool(10);

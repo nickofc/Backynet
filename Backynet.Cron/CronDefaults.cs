@@ -1,6 +1,7 @@
-namespace Backynet.Core.Abstraction;
+// ReSharper disable once CheckNamespace
+namespace Backynet;
 
-public static class CronDefaults
+internal static class CronDefaults
 {
     public const char All = '*';
     public const char List = ',';
@@ -32,7 +33,7 @@ public static class CronDefaults
         { GetHashCode("SAT"), 6 },
         { GetHashCode("SUN"), 7 },
     };
-    
+
     private static int GetMonth(ref ReadOnlySpan<char> input)
     {
         if (input.Length > 3)
@@ -43,7 +44,7 @@ public static class CronDefaults
         var hashCode = GetHashCode(input);
         return MonthMap.GetValueOrDefault(hashCode, -1);
     }
-    
+
     private static int GetHashCode(ReadOnlySpan<char> input)
     {
         var hashCode = new HashCode();

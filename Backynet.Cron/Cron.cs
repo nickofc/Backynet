@@ -1,4 +1,5 @@
-namespace Backynet.Core.Abstraction;
+// ReSharper disable once CheckNamespace
+namespace Backynet;
 
 public readonly ref struct Cron
 {
@@ -99,7 +100,7 @@ public readonly ref struct Cron
         {
             Span<Range> range = stackalloc Range[Value.Length];
             Value.Split(range, ',');
-            
+
             // */5,
             // 1-5,
             // 5 
@@ -118,14 +119,12 @@ public readonly ref struct Cron
         public bool IsValid(DateTimeOffset date)
         {
             Span<Range> range = stackalloc Range[_field.Value.Length];
-            
+
             if (_field.Value.Split(range, ',') > 0)
             {
-                
             }
-            
-            
-            
+
+
             // 	* , - / 
             return false;
         }

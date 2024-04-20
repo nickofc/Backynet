@@ -48,7 +48,7 @@ internal sealed class BackynetClient : IBackynetClient
         var job = JobFactory.Create(jobDescriptor);
         job.GroupName = groupName;
         job.NextOccurrenceAt = job.Cron != null
-            ? DateTimeOffset.Now.Add(CronUtil.GetNextOccurrence(job.Cron))
+            ? throw new NotImplementedException()
             : DateTimeOffset.Now;
         job.JobState = JobState.Scheduled;
         await _jobRepository.Add(job, cancellationToken);

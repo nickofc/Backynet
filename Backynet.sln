@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backynet.Tests.Performance"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApplication2", "example\WebApplication2\WebApplication2.csproj", "{F5574AEF-DE9A-4B75-B9EA-4208FF8180B2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backynet.Cron", "Backynet.Cron\Backynet.Cron.csproj", "{B8520EB9-17C9-4787-8E02-AB994733B06E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,5 +56,9 @@ Global
 		{F5574AEF-DE9A-4B75-B9EA-4208FF8180B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5574AEF-DE9A-4B75-B9EA-4208FF8180B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F5574AEF-DE9A-4B75-B9EA-4208FF8180B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8520EB9-17C9-4787-8E02-AB994733B06E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8520EB9-17C9-4787-8E02-AB994733B06E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8520EB9-17C9-4787-8E02-AB994733B06E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8520EB9-17C9-4787-8E02-AB994733B06E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

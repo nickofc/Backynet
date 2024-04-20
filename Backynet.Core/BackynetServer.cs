@@ -8,20 +8,20 @@ internal sealed class BackynetServer : IBackynetServer
     private readonly IJobRepository _jobRepository;
     private readonly IJobExecutor _jobExecutor;
     private readonly BackynetServerOptions _backynetServerOptions;
-    private readonly IBackynetServerService _backynetServerService;
+    private readonly IServerService _serverService;
     private readonly IThreadPool _threadPool;
 
     public BackynetServer(
         IJobRepository jobRepository,
         IJobExecutor jobExecutor,
         BackynetServerOptions backynetServerOptions,
-        IBackynetServerService backynetServerService,
+        IServerService serverService,
         IThreadPool threadPool)
     {
         _jobRepository = jobRepository;
         _jobExecutor = jobExecutor;
         _backynetServerOptions = backynetServerOptions;
-        _backynetServerService = backynetServerService;
+        _serverService = serverService;
         _threadPool = threadPool;
     }
 
@@ -37,7 +37,7 @@ internal sealed class BackynetServer : IBackynetServer
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            await _backynetServerService.Heartbeat(_backynetServerOptions.ServerName, cancellationToken);
+            await _serverService.Heartbeat(_backynetServerOptions.ServerName, cancellationToken);
             await Task.Delay(_backynetServerOptions.HeartbeatInterval, cancellationToken);
         }
     }

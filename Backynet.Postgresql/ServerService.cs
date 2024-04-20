@@ -4,12 +4,12 @@ using Npgsql;
 
 namespace Backynet.PostgreSql;
 
-internal sealed class BackynetServerService : IBackynetServerService
+internal sealed class ServerService : IServerService
 {
     private readonly NpgsqlConnectionFactory _npgsqlConnectionFactory;
     private readonly TimeSpan _hostTimeout;
 
-    public BackynetServerService(NpgsqlConnectionFactory npgsqlConnectionFactory, TimeSpan hostTimeout)
+    public ServerService(NpgsqlConnectionFactory npgsqlConnectionFactory, TimeSpan hostTimeout)
     {
         _npgsqlConnectionFactory = npgsqlConnectionFactory;
         _hostTimeout = hostTimeout;
