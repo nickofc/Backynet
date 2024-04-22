@@ -15,10 +15,6 @@ public static class DependencyInjection
     public static IServiceCollection AddBackynetServer(this IServiceCollection services,
         Action<BackynetServerOptionsBuilder> configure)
     {
-        var builder = new BackynetServerOptionsBuilder(services);
-
-        configure(builder);
-
         return services;
     }
 
@@ -40,29 +36,5 @@ public static class DependencyInjection
         });
 
         return services;
-    }
-}
-
-public class BackynetServerOptionsBuilder
-{
-    public IServiceCollection Services { get; }
-
-    public BackynetServerOptionsBuilder(IServiceCollection services)
-    {
-        Services = services;
-    }
-
-    internal BackynetServerOptions Options { get; } = new();
-
-    public BackynetServerOptionsBuilder UseMaximumConcurrencyThreads(int maximumConcurrencyThreads)
-    {
-        Options.MaxThreads = maximumConcurrencyThreads;
-        return this;
-    }
-
-    public BackynetServerOptionsBuilder UseServerName(string serverName)
-    {
-        Options.ServerName = serverName;
-        return this;
     }
 }

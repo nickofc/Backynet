@@ -1,4 +1,5 @@
-﻿using Backynet.Postgresql;
+﻿using Backynet.Core;
+using Backynet.Postgresql;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -6,13 +7,10 @@ namespace Microsoft.Extensions.DependencyInjection;
 public static class DependencyInjection
 {
     public static BackynetServerOptionsBuilder UsePostgreSql(
-        this BackynetServerOptionsBuilder backynetConfigurationBuilder,
+        this BackynetServerOptionsBuilder optionsBuilder,
         Action<BackynetServerPostgreSqlOptionsBuilder> configure)
     {
-        var backynetServerPostgreSqlOptionsBuilder = new BackynetServerPostgreSqlOptionsBuilder(backynetConfigurationBuilder.Services);
-        configure(backynetServerPostgreSqlOptionsBuilder);
-        
-        return backynetConfigurationBuilder;
+        return optionsBuilder;
     }
 }
 
