@@ -1,3 +1,5 @@
+using Backynet.Core.Abstraction;
+
 namespace Backynet.Core;
 
 public class BackynetServerOptions
@@ -70,4 +72,9 @@ public class BackynetServerOptions
             _maximumTimeWithoutHeartbeat = value;
         }
     }
+}
+
+public class Dependencies
+{
+    public Func<IJobRepository> JobRepositoryFactory { get; }
 }
