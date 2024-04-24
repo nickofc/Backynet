@@ -76,5 +76,7 @@ public class BackynetServerOptions
 
 public class Dependencies
 {
+    // todo: w tym czasie czytam jak to robi ef core tzn. ładuje tego typu wartosci z providera np. sqlserver
     public Func<IJobRepository> JobRepositoryFactory { get; }
+    public Func<IJobExecutor> JobExecutorFactory { get; }
 }
