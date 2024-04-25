@@ -1,6 +1,5 @@
 ﻿using Backynet.AspNetCore;
 using Backynet.Core;
-using Backynet.Core.Abstraction;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -26,13 +25,9 @@ public static class DependencyInjection
             var options = new BackynetServerOptions();
             configure.Invoke(sp, options);
 
-            var jobRepository = sp.GetRequiredService<IJobRepository>();
-            var jobExecutor = sp.GetRequiredService<IJobExecutor>();
-            var serverService = sp.GetRequiredService<IServerService>();
-            var threadPool = sp.GetRequiredService<IThreadPool>();
-            var backynetServer = new BackynetServer(jobRepository, jobExecutor, options, serverService, threadPool);
-
-            return new BackynetServerHostedService(backynetServer);
+            // todo: build services and return hosted service 
+            
+            return new BackynetServerHostedService(null);
         });
 
         return services;
