@@ -25,7 +25,7 @@ public abstract class BackynetContextOptions : IBackynetContextOptions
     public virtual IEnumerable<IBackynetContextOptionsExtension> Extensions
         => _extensionsMap.Values.OrderBy(v => v.Ordinal).Select(v => v.Extension);
 
-    public IBackynetContextOptionsExtension? FindExtension<TExtension>() where TExtension : class, IBackynetContextOptionsExtension
+    public TExtension? FindExtension<TExtension>() where TExtension : class, IBackynetContextOptionsExtension
     {
         return _extensionsMap.TryGetValue(typeof(TExtension), out var value) ? (TExtension)value.Extension : null;
     }

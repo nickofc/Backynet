@@ -1,22 +1,13 @@
-using Backynet.Postgresql;
-using Microsoft.Extensions.DependencyInjection;
+using Backynet.Core;
 
 namespace Backynet.PostgreSql;
 
-public class BackynetServerPostgreSqlOptionsBuilder
+public class PostgreSqlBackynetContextOptionsBuilder : IPostgreSqlBackynetContextOptionsBuilderInfrastructure
 {
-    public IServiceCollection Services { get; }
-
-    public BackynetServerPostgreSqlOptionsBuilder(IServiceCollection services)
+    public PostgreSqlBackynetContextOptionsBuilder(BackynetContextOptionsBuilder optionsBuilder)
     {
-        Services = services;
+        OptionsBuilder = optionsBuilder;
     }
 
-    internal BackynetServerPostgreSqlOptions Options { get; } = new();
-
-    public BackynetServerPostgreSqlOptionsBuilder UseConnectionString(string connectionString)
-    {
-        Options.ConnectionString = connectionString;
-        return this;
-    }
+    public BackynetContextOptionsBuilder OptionsBuilder { get; }
 }

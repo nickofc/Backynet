@@ -20,9 +20,6 @@ public class BackynetContextOptionsBuilder : IDbContextOptionsBuilderInfrastruct
 
     private BackynetContextOptionsBuilder WithOption(Func<CoreOptionsExtension, CoreOptionsExtension> withFunc)
     {
-        ((IDbContextOptionsBuilderInfrastructure)this).AddOrUpdateExtension(
-            withFunc(Options.FindExtension<CoreOptionsExtension>() ?? new CoreOptionsExtension()));
-
         return this;
     }
 
