@@ -13,4 +13,8 @@ public class BackynetContextOptionsExtension : IBackynetContextOptionsExtension
         services.TryAddSingleton<IJobDescriptorExecutor, JobDescriptorExecutor>();
         services.TryAddSingleton<ISerializer, DefaultJsonSerializer>();
     }
+
+    public void Validate(IBackynetContextOptions options)
+    {
+    }
 }

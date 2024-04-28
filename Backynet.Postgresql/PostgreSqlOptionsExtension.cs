@@ -9,6 +9,7 @@ namespace Backynet.PostgreSql;
 public class PostgreSqlOptionsExtension : IBackynetContextOptionsExtension
 {
     private string? _connectionString;
+    private int? _commandTimeout;
 
     public PostgreSqlOptionsExtension()
     {
@@ -17,6 +18,7 @@ public class PostgreSqlOptionsExtension : IBackynetContextOptionsExtension
     protected PostgreSqlOptionsExtension(PostgreSqlOptionsExtension copyFrom)
     {
         _connectionString = copyFrom._connectionString;
+        _commandTimeout = copyFrom._commandTimeout;
     }
 
     public virtual void ApplyServices(IServiceCollection services)
@@ -25,11 +27,28 @@ public class PostgreSqlOptionsExtension : IBackynetContextOptionsExtension
         services.TryAddSingleton<IServerService, ServerService>();
     }
 
-    public virtual PostgreSqlOptionsExtension WithConnectionString(string connectionString)
+    public void Validate(IBackynetContextOptions options)
+    {
+    }
+
+    public virtual string? ConnectionString => _connectionString;
+
+    public virtual PostgreSqlOptionsExtension WithConnectionString(string? connectionString)
     {
         var clone = Clone();
 
         clone._connectionString = connectionString;
+
+        return clone;
+    }
+
+    public virtual int? CommandTimeout => _commandTimeout;
+
+    public virtual PostgreSqlOptionsExtension WithCommandTimeout(int? commandTimeout)
+    {
+        var clone = Clone();
+
+        clone._commandTimeout = commandTimeout;
 
         return clone;
     }

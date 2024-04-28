@@ -10,7 +10,7 @@ builder.Services.AddBackynetServer(options =>
 {
     options.UseMaximumConcurrencyThreads(10);
     options.UseServerName("fancy-server-name");
-
+    
     options.UsePostgreSql(options =>
     {
         options.UseConnectionString(Environment.GetEnvironmentVariable("BACKYNET_CONNECTION_STRING"));

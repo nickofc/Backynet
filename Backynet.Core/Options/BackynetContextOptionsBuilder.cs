@@ -16,7 +16,9 @@ public class BackynetContextOptionsBuilder : IDbContextOptionsBuilderInfrastruct
     public virtual BackynetContextOptions Options => _options;
 
     public virtual BackynetContextOptionsBuilder UseLoggerFactory(ILoggerFactory? loggerFactory)
-        => WithOption(e => e.WithLoggerFactory(loggerFactory));
+    {
+        return WithOption(x => x.WithLoggerFactory(loggerFactory));
+    }
 
     private BackynetContextOptionsBuilder WithOption(Func<CoreOptionsExtension, CoreOptionsExtension> withFunc)
     {

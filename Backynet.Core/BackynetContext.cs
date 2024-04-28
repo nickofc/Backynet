@@ -7,6 +7,7 @@ public class BackynetContext
 {
     private readonly Guid _contextId = Guid.NewGuid();
 
+    private BackynetContextOptions _options;
     private IServiceCollection? _services;
     private IServiceProvider? _serviceProvider;
     private IServiceScope? _serviceScope;
@@ -16,6 +17,13 @@ public class BackynetContext
 
     private IBackynetServer? _backynetServer;
     private IBackynetClient? _backynetClient;
+
+    public BackynetContext(BackynetContextOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        _options = options;
+    }
 
     public IBackynetServer Server
     {
@@ -63,9 +71,11 @@ public class BackynetContext
             try
             {
                 _initializing = true;
-
-                OnConfiguring(new BackynetServerOptionsBuilder());
-
+                
+                var optionsBuilder = new BackynetContextOptionsBuilder(_options);
+                
+                OnConfiguring(optionsBuilder);
+                
                 _serviceProvider = _services.BuildServiceProvider();
                 _serviceScope = _serviceProvider.CreateScope();
 
@@ -84,8 +94,7 @@ public class BackynetContext
         }
     }
 
-    public virtual void OnConfiguring(BackynetServerOptionsBuilder optionsBuilder)
+    public virtual void OnConfiguring(BackynetContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseServerName("");
     }
 }
