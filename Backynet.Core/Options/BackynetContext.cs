@@ -89,21 +89,3 @@ public class BackynetContext
         optionsBuilder.UseServerName("");
     }
 }
-
-public interface IBackynetContextServices
-{
-    IBackynetContextServices Initialize(IServiceProvider serviceProvider);
-
-    ICurrentBackynetContext CurrentContext { get; }
-    IServiceProvider InternalServiceProvider { get; }
-}
-
-public class BackynetContextServices
-{
-    public ICurrentBackynetContext CurrentContext { get; }
-}
-
-public interface ICurrentBackynetContext
-{
-    BackynetContext BackynetContext { get; }
-}

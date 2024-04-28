@@ -10,6 +10,9 @@ public static class DependencyInjection
         this BackynetServerOptionsBuilder optionsBuilder,
         Action<BackynetServerPostgreSqlOptionsBuilder> configure)
     {
+        ArgumentNullException.ThrowIfNull(optionsBuilder);
+
+        
         return optionsBuilder;
     }
 }
