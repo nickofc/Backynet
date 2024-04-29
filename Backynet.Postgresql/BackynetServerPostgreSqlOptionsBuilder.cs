@@ -18,7 +18,7 @@ public class PostgreSqlBackynetContextOptionsBuilder : IPostgreSqlBackynetContex
         var extension = OptionsBuilder.Options.FindExtension<PostgreSqlOptionsExtension>()
                         ?? new PostgreSqlOptionsExtension();
 
-        extension.WithCommandTimeout(commandTimeout);
+        extension = extension.WithCommandTimeout(commandTimeout);
 
         ((IBackynetContextOptionsBuilderInfrastructure)OptionsBuilder).AddOrUpdateExtension(extension);
 
@@ -30,7 +30,7 @@ public class PostgreSqlBackynetContextOptionsBuilder : IPostgreSqlBackynetContex
         var extension = OptionsBuilder.Options.FindExtension<PostgreSqlOptionsExtension>()
                         ?? new PostgreSqlOptionsExtension();
 
-        extension.WithAutomaticMigration(isAutomaticMigrationEnabled);
+        extension = extension.WithAutomaticMigration(isAutomaticMigrationEnabled);
 
         ((IBackynetContextOptionsBuilderInfrastructure)OptionsBuilder).AddOrUpdateExtension(extension);
 

@@ -34,6 +34,6 @@ public class BackynetContextOptionsBuilder : IBackynetContextOptionsBuilderInfra
 
     void IBackynetContextOptionsBuilderInfrastructure.AddOrUpdateExtension<TExtension>(TExtension extension)
     {
-        _options.WithExtension(extension);
+        _options = _options.WithExtension(extension);
     }
 }

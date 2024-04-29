@@ -30,7 +30,7 @@ public abstract class BackynetContextOptions : IBackynetContextOptions
         => _extensionsMap.TryGetValue(typeof(TExtension), out var value) ? (TExtension)value.Extension : null;
 
     protected virtual ImmutableSortedDictionary<Type, (IBackynetContextOptionsExtension Extension, int Ordinal)> ExtensionsMap => _extensionsMap;
-    public abstract IBackynetContextOptions WithExtension<TExtension>(TExtension extension) where TExtension : class, IBackynetContextOptionsExtension;
+    public abstract BackynetContextOptions WithExtension<TExtension>(TExtension extension) where TExtension : class, IBackynetContextOptionsExtension;
 
     public abstract Type ContextType { get; }
 }

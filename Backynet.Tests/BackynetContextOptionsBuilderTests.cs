@@ -1,4 +1,5 @@
 using Backynet.Core;
+using Backynet.PostgreSql;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Backynet.Tests;
@@ -6,18 +7,26 @@ namespace Backynet.Tests;
 public class BackynetContextOptionsBuilderTests
 {
     [Fact]
-    public void Do()
+    public void Should_Build_Options_When_Executed_With_Valid_Arguments()
     {
-        var optionsBuilder = new BackynetContextOptionsBuilder();
+        var expectedCommandTimeout = TimeSpan.FromSeconds(30);
+        const string expectedConnectionString = "test-connection-string";
+        const bool expectedAutomaticMigration = true;
 
-        optionsBuilder.UsePostgreSql("connection-string", builder =>
+        var backynetContextOptionsBuilder = new BackynetContextOptionsBuilder();
+
+        backynetContextOptionsBuilder.UsePostgreSql(expectedConnectionString, postgreSqlBackynetContextOptionsBuilder =>
         {
-            builder.UseAutomaticMigration(true)
-                .UseCommandTimeout(TimeSpan.FromSeconds(10));
+            postgreSqlBackynetContextOptionsBuilder
+                .UseAutomaticMigration(expectedAutomaticMigration)
+                .UseCommandTimeout(expectedCommandTimeout);
         });
 
-        var options = optionsBuilder.Options;
+        var postgreSqlOptionsExtension = backynetContextOptionsBuilder.Options.FindExtension<PostgreSqlOptionsExtension>();
 
-        Assert.Equal(1, options.Extensions.Count());
+        Assert.NotNull(postgreSqlOptionsExtension);
+        Assert.Equal(expectedCommandTimeout, postgreSqlOptionsExtension.CommandTimeout);
+        Assert.Equal(expectedConnectionString, postgreSqlOptionsExtension.ConnectionString);
+        Assert.Equal(expectedAutomaticMigration, postgreSqlOptionsExtension.IsAutomaticMigrationEnabled);
     }
 }
