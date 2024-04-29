@@ -71,11 +71,11 @@ public class BackynetContext
             try
             {
                 _initializing = true;
-                
+
                 var optionsBuilder = new BackynetContextOptionsBuilder(_options);
-                
+
                 OnConfiguring(optionsBuilder);
-                
+
                 _serviceProvider = _services.BuildServiceProvider();
                 _serviceScope = _serviceProvider.CreateScope();
 

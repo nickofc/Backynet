@@ -16,9 +16,9 @@ public static class DependencyInjection
 
         var extension = optionsBuilder.Options.FindExtension<PostgreSqlOptionsExtension>() ?? new PostgreSqlOptionsExtension();
 
-        extension.WithConnectionString(connectionString);
+        extension = extension.WithConnectionString(connectionString);
 
-        ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(extension);
+        ((IBackynetContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(extension);
 
         configure?.Invoke(new PostgreSqlBackynetContextOptionsBuilder(optionsBuilder));
 

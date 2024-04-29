@@ -9,5 +9,31 @@ public class PostgreSqlBackynetContextOptionsBuilder : IPostgreSqlBackynetContex
         OptionsBuilder = optionsBuilder;
     }
 
-    public BackynetContextOptionsBuilder OptionsBuilder { get; }
+    protected virtual BackynetContextOptionsBuilder OptionsBuilder { get; }
+
+    BackynetContextOptionsBuilder IPostgreSqlBackynetContextOptionsBuilderInfrastructure.OptionsBuilder => OptionsBuilder;
+
+    public virtual PostgreSqlBackynetContextOptionsBuilder UseCommandTimeout(TimeSpan? commandTimeout)
+    {
+        var extension = OptionsBuilder.Options.FindExtension<PostgreSqlOptionsExtension>()
+                        ?? new PostgreSqlOptionsExtension();
+
+        extension.WithCommandTimeout(commandTimeout);
+
+        ((IBackynetContextOptionsBuilderInfrastructure)OptionsBuilder).AddOrUpdateExtension(extension);
+
+        return this;
+    }
+
+    public virtual PostgreSqlBackynetContextOptionsBuilder UseAutomaticMigration(bool? isAutomaticMigrationEnabled)
+    {
+        var extension = OptionsBuilder.Options.FindExtension<PostgreSqlOptionsExtension>()
+                        ?? new PostgreSqlOptionsExtension();
+
+        extension.WithAutomaticMigration(isAutomaticMigrationEnabled);
+
+        ((IBackynetContextOptionsBuilderInfrastructure)OptionsBuilder).AddOrUpdateExtension(extension);
+
+        return this;
+    }
 }

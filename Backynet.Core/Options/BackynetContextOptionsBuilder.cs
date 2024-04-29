@@ -2,9 +2,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Backynet.Core;
 
-public class BackynetContextOptionsBuilder : IDbContextOptionsBuilderInfrastructure
+public class BackynetContextOptionsBuilder : IBackynetContextOptionsBuilderInfrastructure
 {
     private BackynetContextOptions _options;
+
+    public BackynetContextOptionsBuilder() : this(new BackynetContextOptions<BackynetContext>())
+    {
+    }
 
     public BackynetContextOptionsBuilder(BackynetContextOptions options)
     {
@@ -22,11 +26,14 @@ public class BackynetContextOptionsBuilder : IDbContextOptionsBuilderInfrastruct
 
     private BackynetContextOptionsBuilder WithOption(Func<CoreOptionsExtension, CoreOptionsExtension> withFunc)
     {
+        ((IBackynetContextOptionsBuilderInfrastructure)this).AddOrUpdateExtension(
+            withFunc(Options.FindExtension<CoreOptionsExtension>() ?? new CoreOptionsExtension()));
+
         return this;
     }
 
-    public void AddOrUpdateExtension<TExtension>(TExtension extension) where TExtension : class, IBackynetContextOptionsExtension
+    void IBackynetContextOptionsBuilderInfrastructure.AddOrUpdateExtension<TExtension>(TExtension extension)
     {
-        throw new NotImplementedException();
+        _options.WithExtension(extension);
     }
 }
