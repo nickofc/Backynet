@@ -1,28 +1,18 @@
-using Backynet.Core.Abstraction;
+using Backynet.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
-/* add just backynet client */
-builder.Services.AddBackynetClient();
-
-/* add just backynet server */
-builder.Services.AddBackynetServer(options =>
+builder.Services.AddBackynetContext<DefaultBackynetContext>(options =>
 {
-    options.UseMaximumConcurrencyThreads(10);
-    options.UseServerName("fancy-server-name");
-    
-    options.UsePostgreSql(options =>
-    {
-        options.UseConnectionString(Environment.GetEnvironmentVariable("BACKYNET_CONNECTION_STRING"));
-    });
+    options.UsePostgreSql(Environment.GetEnvironmentVariable("BACKYNET_CONNECTION_STRING"));
 });
 
 var app = builder.Build();
 
 app.MapGet("/enqueue", async context =>
 {
-    var backynetClient = context.RequestServices.GetRequiredService<IBackynetClient>();
-    await backynetClient.EnqueueAsync(() => Func.DoWork());
+    var backynetClient = context.RequestServices.GetRequiredService<DefaultBackynetContext>();
+    await backynetClient.Client.EnqueueAsync(() => Func.DoWork());
 
     Console.WriteLine("Job was enqueued");
 });
@@ -39,5 +29,12 @@ public static class Func
         Console.WriteLine("Executing job");
         await Task.Delay(1000);
         Console.WriteLine("Job executed");
+    }
+}
+
+public class DefaultBackynetContext : BackynetContext
+{
+    public DefaultBackynetContext(BackynetContextOptions options) : base(options)
+    {
     }
 }

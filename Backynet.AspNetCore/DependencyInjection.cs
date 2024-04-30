@@ -1,34 +1,15 @@
-﻿using Backynet.AspNetCore;
-using Backynet.Core;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable once CheckNamespace
-namespace Microsoft.Extensions.DependencyInjection;
+namespace Backynet.Core;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddBackynetClient(this IServiceCollection services)
+    public static IServiceCollection AddBackynetContext<TContextImplementation>(
+        this IServiceCollection services,
+        Action<BackynetContextOptionsBuilder>? configure = null)
     {
-        return services;
-    }
-
-    public static IServiceCollection AddBackynetServer(this IServiceCollection services,
-        Action<BackynetServerOptionsBuilder> configure)
-    {
-        return services;
-    }
-
-    public static IServiceCollection AddBackynetServer(this IServiceCollection services,
-        Action<IServiceProvider, BackynetServerOptions> configure)
-    {
-        services.AddHostedService<BackynetServerHostedService>(sp =>
-        {
-            var options = new BackynetServerOptions();
-            configure.Invoke(sp, options);
-
-            // todo: build services and return hosted service 
-            
-            return new BackynetServerHostedService(null);
-        });
+        ArgumentNullException.ThrowIfNull(services);
 
         return services;
     }
