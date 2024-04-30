@@ -6,10 +6,7 @@ namespace Backynet.Core;
 public class BackynetContext
 {
     private readonly Guid _contextId = Guid.NewGuid();
-
-    private BackynetContextOptions _options;
-    private IServiceCollection? _services;
-    private IServiceProvider? _serviceProvider;
+    private readonly BackynetContextOptions _options;
     private IServiceScope? _serviceScope;
     private IBackynetContextServices? _contextServices;
     private bool _initializing;
@@ -76,12 +73,13 @@ public class BackynetContext
 
                 OnConfiguring(optionsBuilder);
 
-                _serviceProvider = _services.BuildServiceProvider();
-                _serviceScope = _serviceProvider.CreateScope();
+                _serviceScope = ServiceProviderCache.Get(_options).CreateScope();
+
+                var scopedServiceProvider = _serviceScope.ServiceProvider;
 
                 var contextServices = _serviceScope.ServiceProvider.GetRequiredService<IBackynetContextServices>();
 
-                contextServices.Initialize(_serviceProvider);
+                contextServices.Initialize(scopedServiceProvider, optionsBuilder.Options, this);
 
                 _contextServices = contextServices;
             }

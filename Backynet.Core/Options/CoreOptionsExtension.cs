@@ -6,7 +6,6 @@ namespace Backynet.Core;
 public class CoreOptionsExtension : IBackynetContextOptionsExtension
 {
     private ILoggerFactory? _loggerFactory;
-    private IServiceProvider _internalServiceProvider;
     
     public CoreOptionsExtension()
     {
@@ -26,23 +25,12 @@ public class CoreOptionsExtension : IBackynetContextOptionsExtension
     }
 
     public virtual ILoggerFactory? LoggerFactory => _loggerFactory;
-
-    public virtual IServiceProvider? InternalServiceProvider => _internalServiceProvider;
     
     public virtual CoreOptionsExtension WithLoggerFactory(ILoggerFactory? loggerFactory)
     {
         var clone = Clone();
 
         clone._loggerFactory = loggerFactory;
-
-        return clone;
-    }
-
-    public virtual CoreOptionsExtension WithInternalServiceProvider(IServiceProvider? serviceProvider)
-    {
-        var clone = Clone();
-
-        clone._internalServiceProvider = _internalServiceProvider;
 
         return clone;
     }
