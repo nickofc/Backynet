@@ -2,7 +2,7 @@ using Npgsql;
 
 namespace Backynet.PostgreSql;
 
-public static class DatabaseExtensions
+internal static class DatabaseExtensions
 {
     public static async Task DeleteAllJobs(NpgsqlConnection connection)
     {

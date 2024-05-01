@@ -1,3 +1,4 @@
+using Backynet.Core.Abstraction;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -14,6 +15,10 @@ public class BackynetServicesBuilder
 
     public virtual BackynetServicesBuilder TryAddCoreServices()
     {
+        _services.TryAddScoped<ISerializer, DefaultJsonSerializer>();
+        _services.TryAddScoped<IBackynetClient, BackynetClient>();
+        _services.TryAddScoped<IBackynetServer, BackynetServer>();
+        _services.TryAddScoped<IBackynetContextServices, BackynetContextServices>();
         _services.TryAddScoped<IJobExecutor, JobExecutor>();
         _services.TryAddScoped<IThreadPool, DefaultThreadPool>();
 
