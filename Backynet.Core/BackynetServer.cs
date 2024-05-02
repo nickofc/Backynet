@@ -97,6 +97,16 @@ internal sealed class BackynetServer : IBackynetServer
                     try
                     {
                         await _jobExecutor.Execute(job, cancellationToken);
+
+                        job.JobState = JobState.Succeeded;
+                        await _jobRepository.Update(job.Id, job, cancellationToken);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"err {e}");
+                        
+                        job.JobState = JobState.Failed;
+                        await _jobRepository.Update(job.Id, job, cancellationToken);
                     }
                     finally
                     {

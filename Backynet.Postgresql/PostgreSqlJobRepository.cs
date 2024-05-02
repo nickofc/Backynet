@@ -133,9 +133,9 @@ internal class PostgreSqlJobRepository : IJobRepository
         command.Parameters.Add(new NpgsqlParameter("method", job.Descriptor.Method.Name));
         command.Parameters.Add(new NpgsqlParameter("arguments", _serializer.Serialize(job.Descriptor.Arguments)));
         command.Parameters.Add(new NpgsqlParameter("server_name", job.ServerName));
-        command.Parameters.Add(new NpgsqlParameter("cron", job.Cron));
-        command.Parameters.Add(new NpgsqlParameter("group_name", job.GroupName));
-        command.Parameters.Add(new NpgsqlParameter("next_occurrence_at", job.NextOccurrenceAt));
+        command.Parameters.Add(new NpgsqlParameter("cron", job.Cron is null ? DBNull.Value : job.Cron));
+        command.Parameters.Add(new NpgsqlParameter("group_name", job.GroupName is null ? DBNull.Value : job.GroupName));
+        command.Parameters.Add(new NpgsqlParameter("next_occurrence_at", job.NextOccurrenceAt is null ? DBNull.Value : job.NextOccurrenceAt));
 
         await connection.OpenAsync(cancellationToken);
         await command.ExecuteNonQueryAsync(cancellationToken);
