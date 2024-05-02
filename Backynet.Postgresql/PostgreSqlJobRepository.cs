@@ -32,6 +32,7 @@ internal class PostgreSqlJobRepository : IJobRepository
                                   SELECT *
                                   FROM jobs
                                   WHERE (server_name IS NULL OR id IN (SELECT id FROM servers WHERE heartbeat_on < @heartbeat_on)) AND state = @state
+                                  FOR UPDATE
                                   )
                               
                               UPDATE jobs
