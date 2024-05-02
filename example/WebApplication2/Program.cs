@@ -4,6 +4,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddBackynetContext<DefaultBackynetContext>(options =>
 {
+    options.UseHeartbeatInterval(TimeSpan.FromSeconds(30));
+    options.UsePoolingInterval(TimeSpan.FromSeconds(1));
+    options.UseServerName(Environment.MachineName);
+    options.UseMaxTimeWithoutHeartbeat(TimeSpan.FromSeconds(120));
+    options.UseMaxThreads(20);
     options.UsePostgreSql(Environment.GetEnvironmentVariable("BACKYNET_CONNECTION_STRING"));
 });
 

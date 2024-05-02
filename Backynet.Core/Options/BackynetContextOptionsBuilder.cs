@@ -33,7 +33,7 @@ public class BackynetContextOptionsBuilder : IBackynetContextOptionsBuilderInfra
     {
         return WithOption(x => x.WithServerName(serverName));
     }
-    
+
     public virtual BackynetContextOptionsBuilder UsePoolingInterval(TimeSpan poolingInterval)
     {
         return WithOption(x => x.WithPoolingInterval(poolingInterval));
