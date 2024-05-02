@@ -25,8 +25,19 @@ public class PostgreSqlOptionsExtension : IBackynetContextOptionsExtension
 
     public virtual void ApplyServices(IServiceCollection services)
     {
-        services.TryAddSingleton<IJobRepository, PostgreSqlJobRepository>();
-        services.TryAddSingleton<IServerService, ServerService>();
+        services.TryAddSingleton(new NpgsqlConnectionFactory(_connectionString));
+        services.TryAddSingleton<IJobRepository>((sp) =>
+        {
+            var npgsqlConnectionFactory = sp.GetRequiredService<NpgsqlConnectionFactory>();
+            var serializer = sp.GetRequiredService<ISerializer>();
+
+            return new PostgreSqlJobRepository(npgsqlConnectionFactory, serializer, TimeSpan.FromSeconds(30));
+        });
+        services.TryAddSingleton<IServerService>((sp) =>
+        {
+            var npgsqlConnectionFactory = sp.GetRequiredService<NpgsqlConnectionFactory>();
+            return new ServerService(npgsqlConnectionFactory, TimeSpan.FromSeconds(30));
+        });
     }
 
     public void Validate(IBackynetContextOptions options)

@@ -8,10 +8,18 @@ public class BackynetContextServices : IBackynetContextServices
         BackynetContext backynetContext)
     {
         InternalServiceProvider = serviceProvider;
+
+        CurrentContext = new CurrentContext { BackynetContext = backynetContext, ContextOptions = optionsBuilderOptions };
         
         return this;
     }
 
-    public ICurrentBackynetContext CurrentContext { get; }
+    public ICurrentBackynetContext CurrentContext { get; private set; }
     public IServiceProvider InternalServiceProvider { get; private set; }
+}
+
+public class CurrentContext : ICurrentBackynetContext
+{
+    public BackynetContext BackynetContext { get; internal set; }
+    public BackynetContextOptions ContextOptions { get; internal set; }
 }

@@ -8,7 +8,7 @@ public abstract class BackynetContextOptions : IBackynetContextOptions
 
     protected BackynetContextOptions()
     {
-        _extensionsMap = ImmutableSortedDictionary.Create<Type, (IBackynetContextOptionsExtension, int)>();
+        _extensionsMap = ImmutableSortedDictionary.Create<Type, (IBackynetContextOptionsExtension, int)>(TypeFullNameComparer.Instance);
     }
 
     protected BackynetContextOptions(ImmutableSortedDictionary<Type, (IBackynetContextOptionsExtension Extension, int Ordinal)> extensions)
@@ -18,7 +18,7 @@ public abstract class BackynetContextOptions : IBackynetContextOptions
 
     protected BackynetContextOptions(IReadOnlyDictionary<Type, IBackynetContextOptionsExtension> extensions)
     {
-        _extensionsMap = ImmutableSortedDictionary.Create<Type, (IBackynetContextOptionsExtension, int)>()
+        _extensionsMap = ImmutableSortedDictionary.Create<Type, (IBackynetContextOptionsExtension, int)>(TypeFullNameComparer.Instance)
             .AddRange(extensions.Select((p, i) => new KeyValuePair<Type, (IBackynetContextOptionsExtension, int)>(p.Key, (p.Value, i))));
     }
 
@@ -33,4 +33,19 @@ public abstract class BackynetContextOptions : IBackynetContextOptions
     public abstract BackynetContextOptions WithExtension<TExtension>(TExtension extension) where TExtension : class, IBackynetContextOptionsExtension;
 
     public abstract Type ContextType { get; }
+}
+
+public sealed class TypeFullNameComparer : IComparer<Type>, IEqualityComparer<Type>
+{
+    private TypeFullNameComparer()
+    {
+    }
+    
+    public static readonly TypeFullNameComparer Instance = new();
+    
+    public int Compare(Type? x, Type? y) => string.CompareOrdinal(x.FullName, y.FullName);
+
+    public bool Equals(Type? x, Type? y) => Compare(x, y) == 0;
+    
+    public int GetHashCode(Type obj) => obj.FullName.GetHashCode();
 }

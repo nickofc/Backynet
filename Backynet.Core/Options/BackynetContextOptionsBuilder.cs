@@ -24,6 +24,31 @@ public class BackynetContextOptionsBuilder : IBackynetContextOptionsBuilderInfra
         return WithOption(x => x.WithLoggerFactory(loggerFactory));
     }
 
+    public virtual BackynetContextOptionsBuilder UseMaxThreads(int maxThreads)
+    {
+        return WithOption(x => x.WithMaxThreads(maxThreads));
+    }
+
+    public virtual BackynetContextOptionsBuilder UseServerName(string serverName)
+    {
+        return WithOption(x => x.WithServerName(serverName));
+    }
+    
+    public virtual BackynetContextOptionsBuilder UsePoolingInterval(TimeSpan poolingInterval)
+    {
+        return WithOption(x => x.WithPoolingInterval(poolingInterval));
+    }
+
+    public virtual BackynetContextOptionsBuilder UseHeartbeatInterval(TimeSpan value)
+    {
+        return WithOption(x => x.WithHeartbeatInterval(value));
+    }
+
+    public virtual BackynetContextOptionsBuilder UseMaxTimeWithoutHeartbeat(TimeSpan value)
+    {
+        return WithOption(x => x.WithMaxTimeWithoutHeartbeat(value));
+    }
+
     private BackynetContextOptionsBuilder WithOption(Func<CoreOptionsExtension, CoreOptionsExtension> withFunc)
     {
         ((IBackynetContextOptionsBuilderInfrastructure)this).AddOrUpdateExtension(

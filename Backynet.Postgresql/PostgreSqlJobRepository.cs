@@ -8,13 +8,16 @@ internal class PostgreSqlJobRepository : IJobRepository
 {
     private readonly NpgsqlConnectionFactory _npgsqlConnectionFactory;
     private readonly ISerializer _serializer;
-    private readonly BackynetServerOptions _options;
+    private readonly TimeSpan _maxTimeWithoutHeartbeat;
 
-    public PostgreSqlJobRepository(NpgsqlConnectionFactory npgsqlConnectionFactory, ISerializer serializer, BackynetServerOptions options)
+    public PostgreSqlJobRepository(
+        NpgsqlConnectionFactory npgsqlConnectionFactory, 
+        ISerializer serializer, 
+        TimeSpan maxTimeWithoutHeartbeat)
     {
         _npgsqlConnectionFactory = npgsqlConnectionFactory;
         _serializer = serializer;
-        _options = options;
+        _maxTimeWithoutHeartbeat = maxTimeWithoutHeartbeat;
     }
 
     public async Task<IReadOnlyCollection<Job>> Acquire(string serverName, int maxJobsCount, CancellationToken cancellationToken = default)
@@ -38,7 +41,7 @@ internal class PostgreSqlJobRepository : IJobRepository
                               """;
         command.Parameters.Add(new NpgsqlParameter<string>("server_name", serverName));
         command.Parameters.Add(new NpgsqlParameter<int>("state", (int) JobState.Scheduled));
-        command.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("heartbeat_on", DateTimeOffset.UtcNow - _options.MaximumTimeWithoutHeartbeat));
+        command.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("heartbeat_on", DateTimeOffset.UtcNow - _maxTimeWithoutHeartbeat));
         command.Parameters.Add(new NpgsqlParameter<int>("max_jobs_count", maxJobsCount));
 
         await connection.OpenAsync(cancellationToken);

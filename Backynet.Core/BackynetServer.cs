@@ -7,22 +7,21 @@ internal sealed class BackynetServer : IBackynetServer
 {
     private readonly IJobRepository _jobRepository;
     private readonly IJobExecutor _jobExecutor;
-    private readonly BackynetServerOptions _backynetServerOptions;
+    private readonly IBackynetContextOptions _backynetContextOptions;
     private readonly IServerService _serverService;
-    private readonly IThreadPool _threadPool;
+    private readonly CoreOptionsExtension _coreOptionsExtension;
 
     public BackynetServer(
         IJobRepository jobRepository,
         IJobExecutor jobExecutor,
-        BackynetServerOptions backynetServerOptions,
-        IServerService serverService,
-        IThreadPool threadPool)
+        IBackynetContextOptions backynetContextOptions,
+        IServerService serverService)
     {
         _jobRepository = jobRepository;
         _jobExecutor = jobExecutor;
-        _backynetServerOptions = backynetServerOptions;
+        _backynetContextOptions = backynetContextOptions;
         _serverService = serverService;
-        _threadPool = threadPool;
+        _coreOptionsExtension = _backynetContextOptions.FindExtension<CoreOptionsExtension>();
     }
 
     public Task Start(CancellationToken cancellationToken)
@@ -37,8 +36,8 @@ internal sealed class BackynetServer : IBackynetServer
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            await _serverService.Heartbeat(_backynetServerOptions.ServerName, cancellationToken);
-            await Task.Delay(_backynetServerOptions.HeartbeatInterval, cancellationToken);
+            await _serverService.Heartbeat(_coreOptionsExtension.ServerName, cancellationToken);
+            await Task.Delay(_coreOptionsExtension.HeartbeatInterval.Value, cancellationToken);
         }
     }
 
@@ -62,11 +61,11 @@ internal sealed class BackynetServer : IBackynetServer
                     throw new InvalidOperationException("There will be no data.");
                 }
 
-                var jobs = await _jobRepository.Acquire(_backynetServerOptions.ServerName, 1, cancellationToken);
+                var jobs = await _jobRepository.Acquire(_coreOptionsExtension.ServerName, 1, cancellationToken);
 
                 if (jobs.Count == 0)
                 {
-                    await Task.Delay(_backynetServerOptions.PoolingInterval, cancellationToken);
+                    await Task.Delay(_coreOptionsExtension.PoolingInterval.Value, cancellationToken);
                     continue;
                 }
 

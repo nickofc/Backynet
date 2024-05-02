@@ -1,7 +1,5 @@
 using Backynet.Core;
 using Backynet.Core.Abstraction;
-using Backynet.Postgresql;
-using Backynet.PostgreSql;
 
 namespace Backynet.Tests;
 
@@ -14,17 +12,14 @@ public class BackynetClientTests
 
         public Sut()
         {
-            var factory = new NpgsqlConnectionFactory(TestContext.ConnectionString);
-            var serializer = new DefaultJsonSerializer();
-            var options = new BackynetServerOptions();
-            var repository = new PostgreSqlJobRepository(factory, serializer, options);
-            var controllerService = new ServerService(factory, TimeSpan.FromSeconds(20));
-            var jobDescriptorExecutor = new JobDescriptorExecutor();
-            var jobExecutor = new JobExecutor(jobDescriptorExecutor, repository);
-            var threadPool = new DefaultThreadPool(10);
+            var optionsBuilder = new BackynetContextOptionsBuilder()
+                .UseMaxTimeWithoutHeartbeat(TimeSpan.FromSeconds(30))
+                .UsePostgreSql(TestContext.ConnectionString);
+            
+            var backynetContext = new BackynetContext(optionsBuilder.Options);
 
-            BackynetServer = new BackynetServer(repository, jobExecutor, options, controllerService, threadPool);
-            BackynetClient = new BackynetClient(repository);
+            BackynetServer = backynetContext.Server;
+            BackynetClient = backynetContext.Client;
         }
 
         private CancellationTokenSource _cancellationTokenSource;

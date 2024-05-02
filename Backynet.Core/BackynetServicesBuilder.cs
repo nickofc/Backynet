@@ -15,12 +15,18 @@ public class BackynetServicesBuilder
 
     public virtual BackynetServicesBuilder TryAddCoreServices()
     {
-        _services.TryAddScoped<ISerializer, DefaultJsonSerializer>();
-        _services.TryAddScoped<IBackynetClient, BackynetClient>();
-        _services.TryAddScoped<IBackynetServer, BackynetServer>();
-        _services.TryAddScoped<IBackynetContextServices, BackynetContextServices>();
-        _services.TryAddScoped<IJobExecutor, JobExecutor>();
-        _services.TryAddScoped<IThreadPool, DefaultThreadPool>();
+        _services.TryAddSingleton<IBackynetContextServices, BackynetContextServices>();
+        _services.TryAddSingleton<IBackynetContextOptions>(sp =>
+        {
+            var contextServices = sp.GetRequiredService<IBackynetContextServices>();
+            return contextServices.CurrentContext.ContextOptions;
+        });
+        _services.TryAddSingleton<ISerializer, DefaultJsonSerializer>();
+        _services.TryAddSingleton<IBackynetClient, BackynetClient>();
+        _services.TryAddSingleton<IBackynetServer, BackynetServer>();
+        _services.TryAddSingleton<IJobExecutor, JobExecutor>();
+        _services.TryAddSingleton<IThreadPool, DefaultThreadPool>();
+        _services.TryAddSingleton<IJobDescriptorExecutor, JobDescriptorExecutor>();
 
         return this;
     }
