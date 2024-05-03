@@ -1,7 +1,5 @@
-using Backynet.Core;
 using Backynet.Options;
 using Backynet.PostgreSql;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Backynet.Tests;
 

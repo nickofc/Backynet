@@ -1,5 +1,4 @@
 using Backynet.Abstraction;
-using Backynet.Core;
 using Backynet.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;

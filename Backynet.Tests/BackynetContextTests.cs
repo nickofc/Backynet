@@ -1,4 +1,3 @@
-using Backynet.Core;
 using Backynet.Options;
 
 namespace Backynet.Tests;

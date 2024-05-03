@@ -2,7 +2,7 @@
 using Backynet.PostgreSql;
 
 // ReSharper disable once CheckNamespace
-namespace Backynet.Core;
+namespace Backynet;
 
 public static class DependencyInjection
 {
