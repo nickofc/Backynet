@@ -8,19 +8,15 @@ public class CoreOptionsExtension : IBackynetContextOptionsExtension
     private ILoggerFactory? _loggerFactory;
 
     // todo: osobny modul? 
-    private int? _maxThreads;
-    private string? _serverName;
-    private TimeSpan? _poolingInterval;
-    private TimeSpan? _heartbeatInterval;
-    private TimeSpan? _maxTimeWithoutHeartbeat;
+    private int _maxThreads = Environment.ProcessorCount;
+    private string _serverName = Environment.MachineName;
+    private TimeSpan _poolingInterval = TimeSpan.FromSeconds(2);
+    private TimeSpan _heartbeatInterval = TimeSpan.FromSeconds(5);
+    private TimeSpan _maxTimeWithoutHeartbeat = TimeSpan.FromSeconds(60);
+    private IServiceProvider? _applicationServiceProvider;
 
     public CoreOptionsExtension()
     {
-        _maxThreads = Environment.ProcessorCount;
-        _serverName = Environment.MachineName;
-        _poolingInterval = TimeSpan.FromSeconds(5);
-        _heartbeatInterval = TimeSpan.FromSeconds(10);
-        _maxTimeWithoutHeartbeat = TimeSpan.FromMinutes(1);
     }
 
     protected CoreOptionsExtension(CoreOptionsExtension copyFrom)
@@ -52,9 +48,20 @@ public class CoreOptionsExtension : IBackynetContextOptionsExtension
         return clone;
     }
 
-    public virtual int? MaxThreads => _maxThreads;
+    public virtual IServiceProvider? ApplicationServiceProvider => _applicationServiceProvider;
 
-    public virtual CoreOptionsExtension WithMaxThreads(int? value)
+    public virtual CoreOptionsExtension WithApplicationServiceProvider(IServiceProvider serviceProvider)
+    {
+        var clone = Clone();
+
+        clone._applicationServiceProvider = serviceProvider;
+
+        return clone;
+    }
+
+    public virtual int MaxThreads => _maxThreads;
+
+    public virtual CoreOptionsExtension WithMaxThreads(int value)
     {
         var clone = Clone();
 
@@ -63,46 +70,46 @@ public class CoreOptionsExtension : IBackynetContextOptionsExtension
         return clone;
     }
 
-    public virtual TimeSpan? PoolingInterval => _poolingInterval;
+    public virtual TimeSpan PoolingInterval => _poolingInterval;
 
-    public virtual CoreOptionsExtension WithPoolingInterval(TimeSpan? value)
+    public virtual CoreOptionsExtension WithPoolingInterval(TimeSpan poolingInterval)
     {
         var clone = Clone();
 
-        clone._poolingInterval = value;
+        clone._poolingInterval = poolingInterval;
 
         return clone;
     }
 
-    public virtual string? ServerName => _serverName;
+    public virtual string ServerName => _serverName;
 
-    public virtual CoreOptionsExtension WithServerName(string? value)
+    public virtual CoreOptionsExtension WithServerName(string serverName)
     {
         var clone = Clone();
 
-        clone._serverName = value;
+        clone._serverName = serverName;
 
         return clone;
     }
 
-    public virtual TimeSpan? HeartbeatInterval => _heartbeatInterval;
+    public virtual TimeSpan HeartbeatInterval => _heartbeatInterval;
 
-    public virtual CoreOptionsExtension WithHeartbeatInterval(TimeSpan? value)
+    public virtual CoreOptionsExtension WithHeartbeatInterval(TimeSpan heartbeatInterval)
     {
         var clone = Clone();
 
-        clone._heartbeatInterval = value;
+        clone._heartbeatInterval = heartbeatInterval;
 
         return clone;
     }
 
-    public virtual TimeSpan? MaxTimeWithoutHeartbeat => _maxTimeWithoutHeartbeat;
+    public virtual TimeSpan MaxTimeWithoutHeartbeat => _maxTimeWithoutHeartbeat;
 
-    public virtual CoreOptionsExtension WithMaxTimeWithoutHeartbeat(TimeSpan? value)
+    public virtual CoreOptionsExtension WithMaxTimeWithoutHeartbeat(TimeSpan maxTimeWithoutHearbeat)
     {
         var clone = Clone();
 
-        clone._maxTimeWithoutHeartbeat = value;
+        clone._maxTimeWithoutHeartbeat = maxTimeWithoutHearbeat;
 
         return clone;
     }

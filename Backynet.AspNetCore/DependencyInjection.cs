@@ -7,24 +7,42 @@ namespace Backynet.Core;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddBackynetContext<TContextImplementation>(
+    public static IServiceCollection AddBackynetContext<TContext>(
         this IServiceCollection services,
-        Action<BackynetContextOptionsBuilder>? configure = null) where TContextImplementation : BackynetContext
+        Action<IServiceProvider, BackynetContextOptionsBuilder> configure) where TContext : BackynetContext
     {
         ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configure);
 
-        var optionsBuilder = new BackynetContextOptionsBuilder(new BackynetContextOptions<TContextImplementation>());
-        configure?.Invoke(optionsBuilder);
-
-        services.TryAddSingleton(optionsBuilder.Options);
-        services.TryAddSingleton(typeof(TContextImplementation));
+        services.TryAddSingleton(typeof(IBackynetContextOptionsConfiguration<TContext>),
+            _ => new BackynetContextOptionsConfiguration<TContext>(configure));
+        
+        services.TryAddSingleton(typeof(BackynetContextOptions<TContext>), CreateDbContextOptions<TContext>);
+        
+        services.TryAddSingleton(typeof(TContext));
 
         services.TryAddSingleton<IHostedService>(sp =>
         {
-            var backynetContext = sp.GetRequiredService<TContextImplementation>();
-            return new BackynetServerHostedService(backynetContext.Server);
+            var backynetContext = sp.GetRequiredService<TContext>();
+            return new BackynetServerHostedService<TContext>(backynetContext.Server);
         });
 
         return services;
+    }
+    
+    private static BackynetContextOptions CreateDbContextOptions<TContext>(
+        IServiceProvider applicationServiceProvider)
+        where TContext : BackynetContext
+    {   
+        var builder = new BackynetContextOptionsBuilder(new BackynetContextOptions<TContext>());
+
+        builder.UseApplicationServiceProvider(applicationServiceProvider);
+
+        foreach (var configuration in applicationServiceProvider.GetServices<IBackynetContextOptionsConfiguration<TContext>>())
+        {
+            configuration.Configure(applicationServiceProvider, builder);
+        }
+
+        return builder.Options;
     }
 }

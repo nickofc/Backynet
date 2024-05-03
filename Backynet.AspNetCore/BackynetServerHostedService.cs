@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 // ReSharper disable once CheckNamespace
 namespace Backynet.Core;
 
-internal sealed class BackynetServerHostedService : BackgroundService
+internal sealed class BackynetServerHostedService<TContext> : BackgroundService
 {
     private readonly IBackynetServer _backynetServer;
 

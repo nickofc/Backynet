@@ -49,6 +49,11 @@ public class BackynetContextOptionsBuilder : IBackynetContextOptionsBuilderInfra
         return WithOption(x => x.WithMaxTimeWithoutHeartbeat(value));
     }
 
+    public virtual BackynetContextOptionsBuilder UseApplicationServiceProvider(IServiceProvider serviceProvider)
+    {
+        return WithOption(x => x.WithApplicationServiceProvider(serviceProvider));
+    }
+
     private BackynetContextOptionsBuilder WithOption(Func<CoreOptionsExtension, CoreOptionsExtension> withFunc)
     {
         ((IBackynetContextOptionsBuilderInfrastructure)this).AddOrUpdateExtension(

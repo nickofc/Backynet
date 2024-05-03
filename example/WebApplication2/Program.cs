@@ -2,7 +2,7 @@ using Backynet.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddBackynetContext<DefaultBackynetContext>(options =>
+builder.Services.AddBackynetContext<DefaultBackynetContext>((sp, options) =>
 {
     options.UseHeartbeatInterval(TimeSpan.FromSeconds(30));
     options.UsePoolingInterval(TimeSpan.FromSeconds(1));
@@ -10,6 +10,7 @@ builder.Services.AddBackynetContext<DefaultBackynetContext>(options =>
     options.UseMaxTimeWithoutHeartbeat(TimeSpan.FromSeconds(120));
     options.UseMaxThreads(20);
     options.UsePostgreSql(Environment.GetEnvironmentVariable("BACKYNET_CONNECTION_STRING"));
+    options.UseLoggerFactory(sp.GetRequiredService<ILoggerFactory>());
 });
 
 var app = builder.Build();
@@ -37,9 +38,4 @@ public static class Func
     }
 }
 
-public class DefaultBackynetContext : BackynetContext
-{
-    public DefaultBackynetContext(BackynetContextOptions options) : base(options)
-    {
-    }
-}
+public class DefaultBackynetContext : BackynetContext;

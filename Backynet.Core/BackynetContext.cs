@@ -15,9 +15,18 @@ public class BackynetContext
     private IBackynetServer? _backynetServer;
     private IBackynetClient? _backynetClient;
 
+    protected BackynetContext() : this(new BackynetContextOptions<BackynetContext>())
+    {
+    }
+    
     public BackynetContext(BackynetContextOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
+
+        if (!options.ContextType.IsAssignableFrom(GetType()))
+        {
+            throw new InvalidOperationException();
+        }
 
         _options = options;
     }

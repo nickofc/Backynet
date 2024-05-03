@@ -37,7 +37,7 @@ internal sealed class BackynetServer : IBackynetServer
             cancellationToken.ThrowIfCancellationRequested();
 
             await _serverService.Heartbeat(_coreOptionsExtension.ServerName, cancellationToken);
-            await Task.Delay(_coreOptionsExtension.HeartbeatInterval.Value, cancellationToken);
+            await Task.Delay(_coreOptionsExtension.HeartbeatInterval, cancellationToken);
         }
     }
 
@@ -65,7 +65,7 @@ internal sealed class BackynetServer : IBackynetServer
 
                 if (jobs.Count == 0)
                 {
-                    await Task.Delay(_coreOptionsExtension.PoolingInterval.Value, cancellationToken);
+                    await Task.Delay(_coreOptionsExtension.PoolingInterval, cancellationToken);
                     continue;
                 }
 
