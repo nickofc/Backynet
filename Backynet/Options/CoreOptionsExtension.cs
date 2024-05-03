@@ -35,6 +35,7 @@ public class CoreOptionsExtension : IBackynetContextOptionsExtension
 
     public void Validate(IBackynetContextOptions options)
     {
+        // todo: walidacja czy konfiguracje jest poprawna
     }
 
     public virtual ILoggerFactory? LoggerFactory => _loggerFactory;

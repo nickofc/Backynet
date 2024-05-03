@@ -17,11 +17,11 @@ public class BackynetContext
 
     private IBackynetServer? _backynetServer;
     private IBackynetClient? _backynetClient;
-    
+
     protected BackynetContext() : this(new BackynetContextOptions<BackynetContext>())
     {
     }
-    
+
     public BackynetContext(BackynetContextOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -85,20 +85,16 @@ public class BackynetContext
 
                 OnConfiguring(optionsBuilder);
 
-                _serviceScope = ServiceProviderCache.Get(_options).CreateScope();
-
-                var scopedServiceProvider = _serviceScope.ServiceProvider;
+                _serviceScope = ServiceProviderCache.Get(optionsBuilder.Options).CreateScope();
 
                 var contextServices = _serviceScope.ServiceProvider.GetRequiredService<IBackynetContextServices>();
-
-                contextServices.Initialize(scopedServiceProvider, optionsBuilder.Options, this);
+                contextServices.Initialize(_serviceScope.ServiceProvider, optionsBuilder.Options, this);
 
                 _contextServices = contextServices;
-                
-                
+
                 var loggerFactory = _options.FindExtension<CoreOptionsExtension>()?.LoggerFactory ?? NullLoggerFactory.Instance;
                 var logger = loggerFactory.CreateLogger<BackynetContext>();
-                
+
                 logger.ContextCreated(nameof(BackynetContext));
             }
             finally
