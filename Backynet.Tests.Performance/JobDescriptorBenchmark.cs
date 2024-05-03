@@ -1,4 +1,4 @@
-﻿using Backynet.Core.Abstraction;
+﻿using Backynet.Abstraction;
 using BenchmarkDotNet.Attributes;
 
 namespace Backynet.Tests.Performance;

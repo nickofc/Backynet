@@ -1,4 +1,3 @@
-using Backynet.Postgresql;
 using Backynet.Tests;
 
 namespace Backynet.PostgreSql.Tests;

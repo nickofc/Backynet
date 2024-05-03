@@ -1,5 +1,4 @@
-using Backynet.Core.Abstraction;
-using Backynet.Postgresql;
+using Backynet.Abstraction;
 using Npgsql;
 
 namespace Backynet.PostgreSql;

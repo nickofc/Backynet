@@ -1,7 +1,7 @@
 using Backynet.Tests;
 using Npgsql;
 
-namespace Backynet.Postgresql.Tests;
+namespace Backynet.PostgreSql.Tests;
 
 public class PostgreSqlConnectionFactoryTests
 {

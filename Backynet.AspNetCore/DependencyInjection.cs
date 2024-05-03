@@ -1,4 +1,4 @@
-﻿using Backynet.Core.Abstraction;
+﻿using Backynet.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;

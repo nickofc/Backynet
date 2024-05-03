@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Backynet.AspNetCore\Backynet.AspNetCore.csproj" />
+      <ProjectReference Include="..\Backynet\Backynet.csproj" />
     </ItemGroup>
 
     <ItemGroup>

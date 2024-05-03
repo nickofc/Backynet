@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
+using Backynet.Abstraction;
 using Backynet.Core;
-using Backynet.Core.Abstraction;
 
 namespace Backynet.Tests;
 

@@ -1,5 +1,6 @@
+using Backynet.Abstraction;
 using Backynet.Core;
-using Backynet.Core.Abstraction;
+using Backynet.Options;
 
 namespace Backynet.Tests;
 

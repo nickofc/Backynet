@@ -1,4 +1,4 @@
-using Backynet.Core.Abstraction;
+using Backynet.Abstraction;
 using Microsoft.Extensions.Hosting;
 
 // ReSharper disable once CheckNamespace

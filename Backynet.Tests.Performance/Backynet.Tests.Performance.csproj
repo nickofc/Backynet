@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Backynet.Core\Backynet.Core.csproj" />
+      <ProjectReference Include="..\Backynet\Backynet.csproj" />
     </ItemGroup>
 
 </Project>

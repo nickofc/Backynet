@@ -1,9 +1,7 @@
-using Backynet.Core;
-using Backynet.Core.Abstraction;
-using Backynet.PostgreSql;
+using Backynet.Abstraction;
 using Backynet.Tests;
 
-namespace Backynet.Postgresql.Tests;
+namespace Backynet.PostgreSql.Tests;
 
 public class PostgresRepositoryTests : IDisposable, IAsyncDisposable
 {

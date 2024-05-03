@@ -1,6 +1,6 @@
 using Npgsql;
 
-namespace Backynet.Postgresql;
+namespace Backynet.PostgreSql;
 
 internal sealed class NpgsqlConnectionFactory
 {

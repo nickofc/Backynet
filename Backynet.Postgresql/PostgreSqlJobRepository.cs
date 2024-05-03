@@ -1,8 +1,7 @@
-using Backynet.Core;
-using Backynet.Core.Abstraction;
+using Backynet.Abstraction;
 using Npgsql;
 
-namespace Backynet.Postgresql;
+namespace Backynet.PostgreSql;
 
 internal class PostgreSqlJobRepository : IJobRepository
 {

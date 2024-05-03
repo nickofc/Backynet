@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using Backynet.Core.Abstraction;
+using Backynet.Abstraction;
 
 namespace Backynet.Tests;
 

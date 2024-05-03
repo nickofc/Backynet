@@ -1,5 +1,5 @@
 using System.Reflection;
-using Backynet.Core.Abstraction;
+using Backynet.Abstraction;
 using JetBrains.dotMemoryUnit;
 using Xunit.Abstractions;
 

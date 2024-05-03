@@ -1,4 +1,5 @@
-﻿using Backynet.PostgreSql;
+﻿using Backynet.Options;
+using Backynet.PostgreSql;
 
 // ReSharper disable once CheckNamespace
 namespace Backynet.Core;

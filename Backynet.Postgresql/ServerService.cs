@@ -1,5 +1,4 @@
 using Backynet.Core;
-using Backynet.Postgresql;
 using Npgsql;
 
 namespace Backynet.PostgreSql;

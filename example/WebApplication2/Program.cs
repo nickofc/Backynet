@@ -1,5 +1,8 @@
+using Backynet;
 using Backynet.Core;
+using Backynet.Options;
 using Microsoft.AspNetCore.Mvc;
+using WebApplication2;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,22 +24,24 @@ app.MapGet("/enqueue", async ([FromServices] DefaultBackynetContext backynetCont
 
 app.Run();
 
-
-/* static class and static method is required.. for now */
-public static class Func
+namespace WebApplication2
 {
-    public static async Task DoWork()
+    /* static class and static method is required.. for now */
+    public static class Func
     {
-        /* dependency injection is not yet supported :( */
-        Console.WriteLine("Executing job");
-        await Task.Delay(1000);
-        Console.WriteLine("Job executed");
+        public static async Task DoWork()
+        {
+            /* dependency injection is not yet supported :( */
+            Console.WriteLine("Executing job");
+            await Task.Delay(1000);
+            Console.WriteLine("Job executed");
+        }
     }
-}
 
-public class DefaultBackynetContext : BackynetContext
-{
-    public DefaultBackynetContext(BackynetContextOptions<DefaultBackynetContext> options) : base(options)
+    public class DefaultBackynetContext : BackynetContext
     {
+        public DefaultBackynetContext(BackynetContextOptions<DefaultBackynetContext> options) : base(options)
+        {
+        }
     }
 }

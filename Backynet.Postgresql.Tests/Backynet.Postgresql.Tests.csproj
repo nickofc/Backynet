@@ -22,6 +22,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Backynet.Postgresql\Backynet.Postgresql.csproj" />
       <ProjectReference Include="..\Backynet.Tests\Backynet.Tests.csproj" />
+      <ProjectReference Include="..\Backynet\Backynet.csproj" />
     </ItemGroup>
 
 </Project>

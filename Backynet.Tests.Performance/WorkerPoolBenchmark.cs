@@ -1,4 +1,3 @@
-using Backynet.Core;
 using BenchmarkDotNet.Attributes;
 
 namespace Backynet.Tests.Performance;
