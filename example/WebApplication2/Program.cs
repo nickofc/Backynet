@@ -1,32 +1,28 @@
 using Backynet.Core;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddLogging();
 builder.Services.AddBackynetContext<DefaultBackynetContext>((sp, options) =>
 {
-    options.UseHeartbeatInterval(TimeSpan.FromSeconds(30));
-    options.UsePoolingInterval(TimeSpan.FromSeconds(1));
-    options.UseServerName(Environment.MachineName);
-    options.UseMaxTimeWithoutHeartbeat(TimeSpan.FromSeconds(120));
-    options.UseMaxThreads(20);
-    options.UsePostgreSql(Environment.GetEnvironmentVariable("BACKYNET_CONNECTION_STRING"));
+    options.UsePostgreSql(Environment.GetEnvironmentVariable("BACKYNET_CONNECTION_STRING") ??
+                          throw new InvalidOperationException("Unable to read connection string"));
     options.UseLoggerFactory(sp.GetRequiredService<ILoggerFactory>());
 });
 
 var app = builder.Build();
 
-app.MapGet("/enqueue", async context =>
+app.MapGet("/enqueue", async ([FromServices] DefaultBackynetContext backynetContext, [FromServices] ILogger<Program> logger) =>
 {
-    var backynetClient = context.RequestServices.GetRequiredService<DefaultBackynetContext>();
-    await backynetClient.Client.EnqueueAsync(() => Func.DoWork());
-
-    Console.WriteLine("Job was enqueued");
+    var jobId = await backynetContext.Client.EnqueueAsync(() => Func.DoWork());
+    logger.LogInformation("Job (jobId = {id}) was enqueued", jobId);
 });
 
 app.Run();
 
 
-/* static class and static method is required.. for now */ 
+/* static class and static method is required.. for now */
 public static class Func
 {
     public static async Task DoWork()
@@ -38,4 +34,9 @@ public static class Func
     }
 }
 
-public class DefaultBackynetContext : BackynetContext;
+public class DefaultBackynetContext : BackynetContext
+{
+    public DefaultBackynetContext(BackynetContextOptions<DefaultBackynetContext> options) : base(options)
+    {
+    }
+}

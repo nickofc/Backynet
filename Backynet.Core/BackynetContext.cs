@@ -1,5 +1,7 @@
 using Backynet.Core.Abstraction;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Backynet.Core;
 
@@ -14,7 +16,7 @@ public class BackynetContext
 
     private IBackynetServer? _backynetServer;
     private IBackynetClient? _backynetClient;
-
+    
     protected BackynetContext() : this(new BackynetContextOptions<BackynetContext>())
     {
     }
@@ -91,6 +93,12 @@ public class BackynetContext
                 contextServices.Initialize(scopedServiceProvider, optionsBuilder.Options, this);
 
                 _contextServices = contextServices;
+                
+                
+                var loggerFactory = _options.FindExtension<CoreOptionsExtension>()?.LoggerFactory ?? NullLoggerFactory.Instance;
+                var logger = loggerFactory.CreateLogger<BackynetContext>();
+                
+                logger.ContextCreated(nameof(BackynetContext));
             }
             finally
             {
@@ -101,7 +109,7 @@ public class BackynetContext
         }
     }
 
-    public virtual void OnConfiguring(BackynetContextOptionsBuilder optionsBuilder)
+    protected internal virtual void OnConfiguring(BackynetContextOptionsBuilder optionsBuilder)
     {
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Backynet.Core.Abstraction;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 
@@ -9,16 +10,17 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddBackynetContext<TContext>(
         this IServiceCollection services,
-        Action<IServiceProvider, BackynetContextOptionsBuilder> configure) where TContext : BackynetContext
+        Action<IServiceProvider, BackynetContextOptionsBuilder> optionsAction) where TContext : BackynetContext
     {
         ArgumentNullException.ThrowIfNull(services);
-        ArgumentNullException.ThrowIfNull(configure);
+        ArgumentNullException.ThrowIfNull(optionsAction);
 
         services.TryAddSingleton(typeof(IBackynetContextOptionsConfiguration<TContext>),
-            _ => new BackynetContextOptionsConfiguration<TContext>(configure));
-        
-        services.TryAddSingleton(typeof(BackynetContextOptions<TContext>), CreateDbContextOptions<TContext>);
-        
+            _ => new BackynetContextOptionsConfiguration<TContext>(optionsAction));
+
+        services.TryAddSingleton(typeof(BackynetContextOptions<TContext>), CreateContextOptions<TContext>);
+        services.TryAddSingleton(typeof(BackynetContextOptions), sp => sp.GetRequiredService<BackynetContextOptions<TContext>>());
+
         services.TryAddSingleton(typeof(TContext));
 
         services.TryAddSingleton<IHostedService>(sp =>
@@ -29,11 +31,11 @@ public static class DependencyInjection
 
         return services;
     }
-    
-    private static BackynetContextOptions CreateDbContextOptions<TContext>(
+
+    private static BackynetContextOptions CreateContextOptions<TContext>(
         IServiceProvider applicationServiceProvider)
         where TContext : BackynetContext
-    {   
+    {
         var builder = new BackynetContextOptionsBuilder(new BackynetContextOptions<TContext>());
 
         builder.UseApplicationServiceProvider(applicationServiceProvider);
