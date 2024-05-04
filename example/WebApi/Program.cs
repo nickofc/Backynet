@@ -11,13 +11,22 @@ builder.Services.AddBackynetContext<DefaultBackynetContext>((sp, options) =>
     options.UsePostgreSql(Environment.GetEnvironmentVariable("BACKYNET_CONNECTION_STRING") ??
                           throw new InvalidOperationException("Unable to read connection string"));
     options.UseLoggerFactory(sp.GetRequiredService<ILoggerFactory>());
+    options.UseApplicationServiceProvider(sp);
 });
+
+builder.Services.AddScoped<WorkerService>();
 
 var app = builder.Build();
 
-app.MapGet("/enqueue", async ([FromServices] DefaultBackynetContext backynetContext, [FromServices] ILogger<Program> logger) =>
+app.MapGet("/enqueue_static", async ([FromServices] DefaultBackynetContext backynetContext, [FromServices] ILogger<Program> logger) =>
 {
     var jobId = await backynetContext.Client.EnqueueAsync(() => Func.DoWork());
+    logger.LogInformation("Job (jobId = {id}) was enqueued", jobId);
+});
+
+app.MapGet("/enqueue_class_instance", async ([FromServices] DefaultBackynetContext backynetContext, [FromServices] WorkerService workerService, [FromServices] ILogger<Program> logger) =>
+{
+    var jobId = await backynetContext.Client.EnqueueAsync(() => workerService.Execute());
     logger.LogInformation("Job (jobId = {id}) was enqueued", jobId);
 });
 
@@ -34,6 +43,24 @@ namespace WebApplication2
             Console.WriteLine("Executing job");
             await Task.Delay(1000);
             Console.WriteLine("Job executed");
+        }
+    }
+
+    /* class added to app ioc */
+    public class WorkerService
+    {
+        private readonly ILogger<WorkerService> _logger;
+
+        public WorkerService(ILogger<WorkerService> logger)
+        {
+            _logger = logger;
+        }
+
+        public async Task Execute()
+        {
+            _logger.LogInformation("Executing job");
+            await Task.Delay(1000);
+            _logger.LogInformation("Job executed");
         }
     }
 

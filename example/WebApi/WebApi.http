@@ -1,6 +1,9 @@
 @Host = http://localhost:5058
 
-GET {{Host}}/enqueue
+GET {{Host}}/enqueue_static
 Accept: application/json
 
 ###
+
+GET {{Host}}/enqueue_class_instance
+Accept: application/json

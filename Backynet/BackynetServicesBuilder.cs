@@ -38,7 +38,18 @@ public class BackynetServicesBuilder
         _services.TryAddSingleton<IBackynetServer, BackynetServer>();
         _services.TryAddSingleton<IJobExecutor, JobExecutor>();
         _services.TryAddSingleton<IThreadPool, DefaultThreadPool>();
-        _services.TryAddSingleton<IJobDescriptorExecutor, JobDescriptorExecutor>();
+        _services.TryAddSingleton<IJobDescriptorExecutor>((sp) =>
+        {
+            var contextOptions = sp.GetRequiredService<IBackynetContextOptions>();
+            var coreOptionsExtension = contextOptions.FindExtension<CoreOptionsExtension>() ?? new CoreOptionsExtension();
+
+            if (coreOptionsExtension.ApplicationServiceProvider != null)
+            {
+                return new ScopedJobDescriptorExecutor(coreOptionsExtension.ApplicationServiceProvider);
+            }
+
+            return new JobDescriptorExecutor();
+        });
 
         return this;
     }
