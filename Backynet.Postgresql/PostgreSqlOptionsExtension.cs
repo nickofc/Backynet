@@ -7,7 +7,7 @@ namespace Backynet.PostgreSql;
 
 public class PostgreSqlOptionsExtension : IBackynetContextOptionsExtension
 {
-    private string? _connectionString;
+    private string _connectionString;
     private TimeSpan? _commandTimeout;
     private bool? _isAutomaticMigrationEnabled;
 
@@ -25,27 +25,19 @@ public class PostgreSqlOptionsExtension : IBackynetContextOptionsExtension
     public virtual void ApplyServices(IServiceCollection services)
     {
         services.TryAddSingleton(new NpgsqlConnectionFactory(_connectionString));
-        services.TryAddSingleton<IJobRepository>((sp) =>
-        {
-            var npgsqlConnectionFactory = sp.GetRequiredService<NpgsqlConnectionFactory>();
-            var serializer = sp.GetRequiredService<ISerializer>();
-
-            return new PostgreSqlJobRepository(npgsqlConnectionFactory, serializer, TimeSpan.FromSeconds(30));
-        });
-        services.TryAddSingleton<IServerService>((sp) =>
-        {
-            var npgsqlConnectionFactory = sp.GetRequiredService<NpgsqlConnectionFactory>();
-            return new ServerService(npgsqlConnectionFactory, TimeSpan.FromSeconds(30));
-        });
+        services.TryAddSingleton<IPostgreSqlJobRepositoryOptions, PostgreSqlJobRepositoryOptions>();
+        services.TryAddSingleton<IJobRepository, PostgreSqlJobRepository>();
+        services.TryAddSingleton<IServerServiceOptions, ServerServiceOptions>();
+        services.TryAddSingleton<IServerService, ServerService>();
     }
 
     public void Validate(IBackynetContextOptions options)
     {
     }
 
-    public virtual string? ConnectionString => _connectionString;
+    public virtual string ConnectionString => _connectionString;
 
-    public virtual PostgreSqlOptionsExtension WithConnectionString(string? connectionString)
+    public virtual PostgreSqlOptionsExtension WithConnectionString(string connectionString)
     {
         var clone = Clone();
 

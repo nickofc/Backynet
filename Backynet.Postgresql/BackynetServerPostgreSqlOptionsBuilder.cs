@@ -15,24 +15,18 @@ public class PostgreSqlBackynetContextOptionsBuilder : IPostgreSqlBackynetContex
 
     public virtual PostgreSqlBackynetContextOptionsBuilder UseCommandTimeout(TimeSpan? commandTimeout)
     {
-        var extension = OptionsBuilder.Options.FindExtension<PostgreSqlOptionsExtension>()
-                        ?? new PostgreSqlOptionsExtension();
-
-        extension = extension.WithCommandTimeout(commandTimeout);
-
-        ((IBackynetContextOptionsBuilderInfrastructure)OptionsBuilder).AddOrUpdateExtension(extension);
-
-        return this;
+        return WithOption(x => x.WithCommandTimeout(commandTimeout));
     }
 
     public virtual PostgreSqlBackynetContextOptionsBuilder UseAutomaticMigration(bool? isAutomaticMigrationEnabled)
     {
-        var extension = OptionsBuilder.Options.FindExtension<PostgreSqlOptionsExtension>()
-                        ?? new PostgreSqlOptionsExtension();
+        return WithOption(x => x.WithAutomaticMigration(isAutomaticMigrationEnabled));
+    }
 
-        extension = extension.WithAutomaticMigration(isAutomaticMigrationEnabled);
-
-        ((IBackynetContextOptionsBuilderInfrastructure)OptionsBuilder).AddOrUpdateExtension(extension);
+    private PostgreSqlBackynetContextOptionsBuilder WithOption(Func<PostgreSqlOptionsExtension, PostgreSqlOptionsExtension> withFunc)
+    {
+        ((IBackynetContextOptionsBuilderInfrastructure)OptionsBuilder).AddOrUpdateExtension(
+            withFunc(OptionsBuilder.Options.FindExtension<PostgreSqlOptionsExtension>() ?? new PostgreSqlOptionsExtension()));
 
         return this;
     }

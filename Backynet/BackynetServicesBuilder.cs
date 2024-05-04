@@ -16,6 +16,7 @@ public class BackynetServicesBuilder
 
     public virtual BackynetServicesBuilder TryAddCoreServices()
     {
+        _services.TryAddSingleton<IBackynetServerOptions, BackynetServerOptions>();
         _services.TryAddSingleton<IBackynetContextServices, BackynetContextServices>();
         _services.TryAddSingleton<IBackynetContextOptions>(sp =>
         {

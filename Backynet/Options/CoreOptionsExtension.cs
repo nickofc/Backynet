@@ -6,6 +6,7 @@ namespace Backynet.Options;
 public class CoreOptionsExtension : IBackynetContextOptionsExtension
 {
     private ILoggerFactory? _loggerFactory;
+    private IServiceProvider? _applicationServiceProvider;
 
     // todo: osobny modul? 
     private int _maxThreads = Environment.ProcessorCount;
@@ -13,7 +14,6 @@ public class CoreOptionsExtension : IBackynetContextOptionsExtension
     private TimeSpan _poolingInterval = TimeSpan.FromSeconds(2);
     private TimeSpan _heartbeatInterval = TimeSpan.FromSeconds(5);
     private TimeSpan _maxTimeWithoutHeartbeat = TimeSpan.FromSeconds(60);
-    private IServiceProvider? _applicationServiceProvider;
 
     public CoreOptionsExtension()
     {
@@ -22,6 +22,8 @@ public class CoreOptionsExtension : IBackynetContextOptionsExtension
     protected CoreOptionsExtension(CoreOptionsExtension copyFrom)
     {
         _loggerFactory = copyFrom._loggerFactory;
+        _applicationServiceProvider = copyFrom._applicationServiceProvider;
+
         _maxThreads = copyFrom._maxThreads;
         _serverName = copyFrom._serverName;
         _poolingInterval = copyFrom._poolingInterval;

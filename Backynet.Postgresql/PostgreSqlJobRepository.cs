@@ -7,16 +7,16 @@ internal class PostgreSqlJobRepository : IJobRepository
 {
     private readonly NpgsqlConnectionFactory _npgsqlConnectionFactory;
     private readonly ISerializer _serializer;
-    private readonly TimeSpan _maxTimeWithoutHeartbeat;
+    private readonly IPostgreSqlJobRepositoryOptions _postgreSqlJobRepositoryOptions;
 
     public PostgreSqlJobRepository(
-        NpgsqlConnectionFactory npgsqlConnectionFactory, 
-        ISerializer serializer, 
-        TimeSpan maxTimeWithoutHeartbeat)
+        NpgsqlConnectionFactory npgsqlConnectionFactory,
+        ISerializer serializer,
+        IPostgreSqlJobRepositoryOptions postgreSqlJobRepositoryOptions)
     {
         _npgsqlConnectionFactory = npgsqlConnectionFactory;
         _serializer = serializer;
-        _maxTimeWithoutHeartbeat = maxTimeWithoutHeartbeat;
+        _postgreSqlJobRepositoryOptions = postgreSqlJobRepositoryOptions;
     }
 
     public async Task<IReadOnlyCollection<Job>> Acquire(string serverName, int maxJobsCount, CancellationToken cancellationToken = default)
@@ -33,15 +33,16 @@ internal class PostgreSqlJobRepository : IJobRepository
                                   WHERE (server_name IS NULL OR id IN (SELECT id FROM servers WHERE heartbeat_on < @heartbeat_on)) AND state = @state
                                   FOR UPDATE
                                   )
-                              
+
                               UPDATE jobs
                               SET server_name = @server_name
                               WHERE id IN (SELECT id FROM unassigned_jobs LIMIT @max_jobs_count)
                               RETURNING id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at
                               """;
         command.Parameters.Add(new NpgsqlParameter<string>("server_name", serverName));
-        command.Parameters.Add(new NpgsqlParameter<int>("state", (int) JobState.Scheduled));
-        command.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("heartbeat_on", DateTimeOffset.UtcNow - _maxTimeWithoutHeartbeat));
+        command.Parameters.Add(new NpgsqlParameter<int>("state", (int)JobState.Scheduled));
+        command.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("heartbeat_on",
+            DateTimeOffset.UtcNow - _postgreSqlJobRepositoryOptions.MaxTimeWithoutHeartbeat));
         command.Parameters.Add(new NpgsqlParameter<int>("max_jobs_count", maxJobsCount));
 
         await connection.OpenAsync(cancellationToken);
