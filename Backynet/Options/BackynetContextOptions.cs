@@ -4,14 +4,14 @@ namespace Backynet.Options;
 
 public abstract class BackynetContextOptions : IBackynetContextOptions
 {
-    private readonly ImmutableSortedDictionary<Type, (IBackynetContextOptionsExtension Extension, int Ordinal)> _extensionsMap;
+    private readonly ImmutableDictionary<Type, (IBackynetContextOptionsExtension Extension, int Ordinal)> _extensionsMap;
 
     protected BackynetContextOptions()
     {
-        _extensionsMap = ImmutableSortedDictionary.Create<Type, (IBackynetContextOptionsExtension, int)>(TypeFullNameComparer.Instance);
+        _extensionsMap = ImmutableDictionary.Create<Type, (IBackynetContextOptionsExtension, int)>();
     }
 
-    protected BackynetContextOptions(ImmutableSortedDictionary<Type, (IBackynetContextOptionsExtension Extension, int Ordinal)> extensions)
+    protected BackynetContextOptions(ImmutableDictionary<Type, (IBackynetContextOptionsExtension Extension, int Ordinal)> extensions)
     {
         _extensionsMap = extensions;
     }
@@ -23,7 +23,7 @@ public abstract class BackynetContextOptions : IBackynetContextOptions
         where TExtension : class, IBackynetContextOptionsExtension
         => _extensionsMap.TryGetValue(typeof(TExtension), out var value) ? (TExtension)value.Extension : null;
 
-    protected virtual ImmutableSortedDictionary<Type, (IBackynetContextOptionsExtension Extension, int Ordinal)> ExtensionsMap => _extensionsMap;
+    protected virtual ImmutableDictionary<Type, (IBackynetContextOptionsExtension Extension, int Ordinal)> ExtensionsMap => _extensionsMap;
     public abstract BackynetContextOptions WithExtension<TExtension>(TExtension extension) where TExtension : class, IBackynetContextOptionsExtension;
 
     public abstract Type ContextType { get; }

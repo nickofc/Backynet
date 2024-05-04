@@ -8,7 +8,7 @@ public class BackynetContextOptions<TContext> : BackynetContextOptions
     {
     }
 
-    private BackynetContextOptions(ImmutableSortedDictionary<Type, (IBackynetContextOptionsExtension Extension, int Ordinal)> extensions) : base(extensions)
+    private BackynetContextOptions(ImmutableDictionary<Type, (IBackynetContextOptionsExtension Extension, int Ordinal)> extensions) : base(extensions)
     {
     }
 
