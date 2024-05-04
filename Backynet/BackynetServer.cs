@@ -1,5 +1,6 @@
 using System.Threading.Channels;
 using Backynet.Abstraction;
+using Microsoft.Extensions.Logging;
 
 namespace Backynet;
 
@@ -9,21 +10,26 @@ internal sealed class BackynetServer : IBackynetServer
     private readonly IJobExecutor _jobExecutor;
     private readonly IServerService _serverService;
     private readonly IBackynetServerOptions _serverOptions;
+    private readonly ILogger _logger;
 
     public BackynetServer(
         IJobRepository jobRepository,
         IJobExecutor jobExecutor,
         IServerService serverService,
-        IBackynetServerOptions serverOptions)
+        IBackynetServerOptions serverOptions,
+        ILogger<BackynetServer> logger)
     {
         _jobRepository = jobRepository;
         _jobExecutor = jobExecutor;
         _serverService = serverService;
         _serverOptions = serverOptions;
+        _logger = logger;
     }
 
     public Task Start(CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Staring background process");
+
         var combinedTasks = Task.WhenAll(HeartbeatTask(cancellationToken), MainTask(cancellationToken));
         return combinedTasks.IsCompleted ? combinedTasks : Task.CompletedTask;
     }

@@ -2,6 +2,8 @@ using Backynet.Abstraction;
 using Backynet.Options;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Backynet;
 
@@ -16,6 +18,14 @@ public class BackynetServicesBuilder
 
     public virtual BackynetServicesBuilder TryAddCoreServices()
     {
+        _services.TryAddSingleton<ILoggerFactory>(sp =>
+        {
+            var contextOptions = sp.GetRequiredService<IBackynetContextOptions>();
+            var coreOptionsExtension = contextOptions.FindExtension<CoreOptionsExtension>() ?? new CoreOptionsExtension();
+
+            return coreOptionsExtension.LoggerFactory ?? new NullLoggerFactory();
+        });
+        _services.TryAddSingleton(typeof(ILogger<>), typeof(Logger<>));
         _services.TryAddSingleton<IBackynetServerOptions, BackynetServerOptions>();
         _services.TryAddSingleton<IBackynetContextServices, BackynetContextServices>();
         _services.TryAddSingleton<IBackynetContextOptions>(sp =>
