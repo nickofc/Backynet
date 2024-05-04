@@ -7,11 +7,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backynet", "Backynet\Backyn
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backynet.AspNetCore", "Backynet.AspNetCore\Backynet.AspNetCore.csproj", "{E93AD1A4-B7F6-48CD-995E-42623B43B16C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backynet.PostgreSql", "Backynet.Postgresql\Backynet.PostgreSql.csproj", "{6477B7E5-4BAC-48C3-82C0-F6D4DEEB3D4B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backynet.PostgreSql", "Backynet.PostgreSql\Backynet.PostgreSql.csproj", "{6477B7E5-4BAC-48C3-82C0-F6D4DEEB3D4B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backynet.Tests", "Backynet.Tests\Backynet.Tests.csproj", "{3128E2F7-8613-44F8-B640-882A1F79D9AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backynet.PostgreSql.Tests", "Backynet.Postgresql.Tests\Backynet.PostgreSql.Tests.csproj", "{031ACB3A-92D4-4279-951E-4525C9CE905D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backynet.PostgreSql.Tests", "Backynet.PostgreSql.Tests\Backynet.PostgreSql.Tests.csproj", "{031ACB3A-92D4-4279-951E-4525C9CE905D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backynet.Tests.Performance", "Backynet.Tests.Performance\Backynet.Tests.Performance.csproj", "{CA50C8B8-B1CF-4E5E-9A20-93738931095C}"
 EndProject
