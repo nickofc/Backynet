@@ -1,26 +1,24 @@
-using Npgsql;
-
 namespace Backynet.PostgreSql;
 
-internal sealed class Migration
+internal sealed class MigrationService
 {
     private readonly NpgsqlConnectionFactory _connectionFactory;
 
-    public Migration(NpgsqlConnectionFactory connectionFactory)
+    public MigrationService(NpgsqlConnectionFactory connectionFactory)
     {
         _connectionFactory = connectionFactory;
     }
 
-    public async Task Perform(CancellationToken cancellationToken)
+    public async Task Perform(IEnumerable<string> scripts, CancellationToken cancellationToken)
     {
-        var scripts = new List<string>();
-
         await using var connection = await _connectionFactory.GetAsync(cancellationToken);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
         foreach (var script in scripts)
         {
-            await using var command = new NpgsqlCommand(script, connection, transaction);
+            await using var command = connection.CreateCommand();
+            command.CommandText = script;
+            command.Transaction = transaction;
             await command.ExecuteNonQueryAsync(cancellationToken);
         }
 
