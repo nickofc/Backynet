@@ -37,7 +37,8 @@ public class BackynetServicesBuilder
         _services.TryAddSingleton<IBackynetClient, BackynetClient>();
         _services.TryAddSingleton<IBackynetServer, BackynetServer>();
         _services.TryAddSingleton<IJobExecutor, JobExecutor>();
-        _services.TryAddSingleton<IThreadPool, DefaultThreadPool>();
+        _services.TryAddSingleton<IThreadPoolOptions, ThreadPoolOptions>();
+        _services.TryAddSingleton<IThreadPool, ThreadPool>();
         _services.TryAddSingleton<IJobDescriptorExecutor>((sp) =>
         {
             var contextOptions = sp.GetRequiredService<IBackynetContextOptions>();
