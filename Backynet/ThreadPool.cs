@@ -1,6 +1,6 @@
 namespace Backynet;
 
-public sealed class ThreadPool : IThreadPool
+public sealed class ThreadPool : IThreadPool, IDisposable
 {
     private readonly SemaphoreSlim _semaphoreSlim;
     private int _availableThreadCount;
@@ -37,5 +37,10 @@ public sealed class ThreadPool : IThreadPool
     public Task WaitForAvailableThread(CancellationToken cancellationToken)
     {
         return _semaphoreSlim.WaitAsync(cancellationToken);
+    }
+
+    public void Dispose()
+    {
+        _semaphoreSlim.Dispose();
     }
 }

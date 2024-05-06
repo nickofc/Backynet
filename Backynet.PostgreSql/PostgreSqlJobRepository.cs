@@ -19,6 +19,15 @@ internal class PostgreSqlJobRepository : IJobRepository
         _postgreSqlJobRepositoryOptions = postgreSqlJobRepositoryOptions;
     }
 
+    private static readonly int[] IntermediateStates =
+    [
+        (int)JobState.Unknown,
+        (int)JobState.Created,
+        (int)JobState.Enqueued,
+        (int)JobState.Scheduled,
+        (int)JobState.Processing
+    ];
+
     public async Task<IReadOnlyCollection<Job>> Acquire(string serverName, int maxJobsCount, CancellationToken cancellationToken = default)
     {
         await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
@@ -29,7 +38,7 @@ internal class PostgreSqlJobRepository : IJobRepository
                                   (
                                   SELECT *
                                   FROM jobs j
-                                  WHERE j.server_name IS NULL -- OR j.server_name in (SELECT s.server_name FROM servers s WHERE s.heartbeat_on < @heartbeat_on)
+                                  WHERE (j.server_name IS NULL OR j.server_name NOT IN (SELECT s.server_name FROM servers s)) and j.state = ANY (@states)
                                   LIMIT @max_jobs_count
                                   FOR UPDATE
                                   )
@@ -40,7 +49,7 @@ internal class PostgreSqlJobRepository : IJobRepository
                               RETURNING id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at
                               """;
         command.Parameters.Add(new NpgsqlParameter<string>("server_name", serverName));
-        command.Parameters.Add(new NpgsqlParameter<int>("state", (int)JobState.Scheduled));
+        command.Parameters.Add(new NpgsqlParameter<int[]>("states", IntermediateStates));
         command.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("heartbeat_on",
             DateTimeOffset.UtcNow - _postgreSqlJobRepositoryOptions.MaxTimeWithoutHeartbeat));
         command.Parameters.Add(new NpgsqlParameter<int>("max_jobs_count", maxJobsCount));
