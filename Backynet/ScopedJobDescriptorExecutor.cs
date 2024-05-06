@@ -32,24 +32,27 @@ internal sealed class ScopedJobDescriptorExecutor : IJobDescriptorExecutor
         object? instance = null;
         IServiceScope? serviceScope = null;
 
-        if (methodInfo.IsStatic == false)
-        {
-            serviceScope = _serviceProvider.CreateScope();
-            instance = serviceScope.ServiceProvider.GetRequiredService(type);
-        }
-
         try
         {
-            var returnValue = methodInfo.Invoke(instance, jobDescriptor.Arguments.Select(x => x.Value).ToArray());
-
-            if (returnValue is Task task)
+            if (methodInfo.IsStatic == false)
             {
-                await task;
+                serviceScope = _serviceProvider.CreateScope();
+                instance = serviceScope.ServiceProvider.GetRequiredService(type);
             }
-        }
-        catch (Exception e)
-        {
-            throw new JobDescriptorExecutorException("Error occured during job code execution.", e);
+
+            try
+            {
+                var returnValue = methodInfo.Invoke(instance, jobDescriptor.Arguments.Select(x => x.Value).ToArray());
+
+                if (returnValue is Task task)
+                {
+                    await task;
+                }
+            }
+            catch (Exception e)
+            {
+                throw new JobDescriptorExecutorException("Error occured during job code execution.", e);
+            }
         }
         finally
         {

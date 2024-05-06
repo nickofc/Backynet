@@ -22,21 +22,21 @@ internal class PostgreSqlJobRepository : IJobRepository
     public async Task<IReadOnlyCollection<Job>> Acquire(string serverName, int maxJobsCount, CancellationToken cancellationToken = default)
     {
         await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
-        await using var command = new NpgsqlCommand();
-        command.Connection = connection;
+        await using var command = connection.CreateCommand();
         command.CommandText = """
                               WITH unassigned_jobs
                                   AS
                                   (
                                   SELECT *
-                                  FROM jobs
-                                  WHERE (server_name IS NULL OR id IN (SELECT id FROM servers WHERE heartbeat_on < @heartbeat_on)) AND state = @state
+                                  FROM jobs j
+                                  WHERE j.server_name IS NULL -- OR j.server_name in (SELECT s.server_name FROM servers s WHERE s.heartbeat_on < @heartbeat_on)
+                                  LIMIT @max_jobs_count
                                   FOR UPDATE
                                   )
 
                               UPDATE jobs
                               SET server_name = @server_name
-                              WHERE id IN (SELECT id FROM unassigned_jobs LIMIT @max_jobs_count)
+                              WHERE id IN (SELECT id FROM unassigned_jobs)
                               RETURNING id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at
                               """;
         command.Parameters.Add(new NpgsqlParameter<string>("server_name", serverName));
@@ -61,8 +61,7 @@ internal class PostgreSqlJobRepository : IJobRepository
     public async Task Add(Job job, CancellationToken cancellationToken = default)
     {
         await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
-        await using var command = new NpgsqlCommand();
-        command.Connection = connection;
+        await using var command = connection.CreateCommand();
         command.CommandText = """
                               insert into jobs (id, state, created_at, base_type, method, arguments, server_name, cron, group_name)
                               values (@id, @state, @created_at, @base_type, @method, @arguments, @server_name, @cron, @group_name);
@@ -87,8 +86,7 @@ internal class PostgreSqlJobRepository : IJobRepository
     public async Task<Job?> Get(Guid jobId, CancellationToken cancellationToken = default)
     {
         await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
-        await using var command = new NpgsqlCommand();
-        command.Connection = connection;
+        await using var command = connection.CreateCommand();
         command.CommandText = """
                               select id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at
                               from jobs where id = @id
@@ -111,8 +109,7 @@ internal class PostgreSqlJobRepository : IJobRepository
     public async Task Update(Guid jobId, Job job, CancellationToken cancellationToken = default)
     {
         await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
-        await using var command = new NpgsqlCommand();
-        command.Connection = connection;
+        await using var command = connection.CreateCommand();
         command.CommandText = """
                               update jobs
                               set

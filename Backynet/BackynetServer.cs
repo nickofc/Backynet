@@ -32,7 +32,7 @@ internal sealed class BackynetServer : IBackynetServer
     {
         _logger.LogInformation("Staring background process");
 
-        var combinedTasks = Task.WhenAll(HeartbeatTask(cancellationToken), MainTask(cancellationToken));
+        var combinedTasks = Task.WhenAll(HeartbeatTask(cancellationToken), WorkerTask(cancellationToken));
         return combinedTasks.IsCompleted ? combinedTasks : Task.CompletedTask;
     }
 
@@ -48,13 +48,13 @@ internal sealed class BackynetServer : IBackynetServer
         }
     }
 
-    private async Task MainTask(CancellationToken cancellationToken)
+    private async Task WorkerTask(CancellationToken cancellationToken)
     {
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var jobs = await _jobRepository.Acquire(_serverOptions.ServerName, 1, cancellationToken);
+            var jobs = await _jobRepository.Acquire(_serverOptions.ServerName, _threadPool.AvailableThreadCount, cancellationToken);
 
             if (jobs.Count == 0)
             {
@@ -64,8 +64,10 @@ internal sealed class BackynetServer : IBackynetServer
 
             foreach (var job in jobs)
             {
-                _threadPool.Post(() => _jobExecutor.Execute(job, cancellationToken));
+                await _threadPool.Post(() => _jobExecutor.Execute(job, cancellationToken));
             }
+
+            await _threadPool.WaitForAvailableThread(cancellationToken);
         }
     }
 }

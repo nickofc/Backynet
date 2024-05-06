@@ -2,11 +2,6 @@
 
 namespace Backynet;
 
-public interface IThreadPoolOptions
-{
-    int MaxThreads { get; init; }
-}
-
 public class ThreadPoolOptions : IThreadPoolOptions
 {
     public int MaxThreads { get; init; }

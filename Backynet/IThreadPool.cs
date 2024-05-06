@@ -2,5 +2,7 @@ namespace Backynet;
 
 public interface IThreadPool
 {
-    void Post(Func<Task> func);
+    int AvailableThreadCount { get; }
+    Task Post(Func<Task> methodCall);
+    Task WaitForAvailableThread(CancellationToken cancellationToken);
 }

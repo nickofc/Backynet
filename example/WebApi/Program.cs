@@ -18,35 +18,51 @@ builder.Services.AddScoped<WorkerService>();
 
 var app = builder.Build();
 
-app.MapGet("/enqueue_static", async ([FromServices] DefaultBackynetContext backynetContext, [FromServices] ILogger<Program> logger) =>
+app.MapGet("/enqueue_static", async (
+    [FromServices] DefaultBackynetContext backynetContext,
+    [FromServices] ILogger<Program> logger) =>
 {
     var jobId = await backynetContext.Client.EnqueueAsync(() => Func.DoWork());
     logger.LogInformation("Job (jobId = {id}) was enqueued", jobId);
 });
 
-app.MapGet("/enqueue_class_instance", async ([FromServices] DefaultBackynetContext backynetContext, [FromServices] WorkerService workerService, [FromServices] ILogger<Program> logger) =>
+app.MapGet("/enqueue_class_instance", async (
+    [FromServices] DefaultBackynetContext backynetContext,
+    [FromServices] WorkerService workerService,
+    [FromServices] ILogger<Program> logger) =>
 {
     var jobId = await backynetContext.Client.EnqueueAsync(() => workerService.Execute());
     logger.LogInformation("Job (jobId = {id}) was enqueued", jobId);
+});
+
+app.MapGet("/enqueue_class_instance_bulk", async (
+    [FromServices] DefaultBackynetContext backynetContext,
+    [FromServices] WorkerService workerService,
+    [FromServices] ILogger<Program> logger) =>
+{
+    for (var i = 0; i < 1000; i++)
+    {
+        var jobId = await backynetContext.Client.EnqueueAsync(() => workerService.Execute());
+        logger.LogInformation("Job (jobId = {id}) was enqueued", jobId);
+    }
 });
 
 app.Run();
 
 namespace WebApplication2
 {
-    /* static class and static method is required.. for now */
+    /* static class */
     public static class Func
     {
         public static async Task DoWork()
         {
-            /* dependency injection is not yet supported :( */
             Console.WriteLine("Executing job");
             await Task.Delay(1000);
             Console.WriteLine("Job executed");
         }
     }
 
-    /* class added to app ioc */
+    /* class added to ioc */
     public class WorkerService
     {
         private readonly ILogger<WorkerService> _logger;
@@ -58,7 +74,7 @@ namespace WebApplication2
 
         public async Task Execute()
         {
-            _logger.LogInformation("Executing job");
+            _logger.LogInformation("Executing background job");
             await Task.Delay(1000);
             _logger.LogInformation("Job executed");
         }

@@ -7,3 +7,9 @@ Accept: application/json
 
 GET {{Host}}/enqueue_class_instance
 Accept: application/json
+
+
+###
+
+GET {{Host}}/enqueue_class_instance_bulk
+Accept: application/json

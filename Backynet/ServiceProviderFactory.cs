@@ -3,9 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Backynet;
 
-public static class ServiceProviderCache
+public static class ServiceProviderFactory
 {
-    public static IServiceProvider Get(IBackynetContextOptions options)
+    public static IServiceProvider Create(IBackynetContextOptions options)
     {
         var services = new ServiceCollection();
 
