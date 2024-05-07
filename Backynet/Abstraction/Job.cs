@@ -12,4 +12,5 @@ public class Job
     public string? Cron { get; set; }
     public string? GroupName { get; set; }
     public DateTimeOffset? NextOccurrenceAt { get; set; }
+    public int RowVersion { get; set; }
 }

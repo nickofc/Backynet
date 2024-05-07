@@ -40,18 +40,17 @@ internal class PostgreSqlJobRepository : IJobRepository
                                   FROM jobs j
                                   WHERE (j.server_name IS NULL OR j.server_name NOT IN (SELECT s.server_name FROM servers s)) and j.state = ANY (@states)
                                   LIMIT @max_jobs_count
-                                  FOR UPDATE
+                                  FOR UPDATE SKIP LOCKED 
                                   )
 
                               UPDATE jobs
                               SET server_name = @server_name
                               WHERE id IN (SELECT id FROM unassigned_jobs)
-                              RETURNING id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at
+                              RETURNING id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at, row_version
                               """;
         command.Parameters.Add(new NpgsqlParameter<string>("server_name", serverName));
         command.Parameters.Add(new NpgsqlParameter<int[]>("states", IntermediateStates));
-        command.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("heartbeat_on",
-            DateTimeOffset.UtcNow - _postgreSqlJobRepositoryOptions.MaxTimeWithoutHeartbeat));
+        command.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("heartbeat_on", DateTimeOffset.UtcNow - _postgreSqlJobRepositoryOptions.MaxTimeWithoutHeartbeat));
         command.Parameters.Add(new NpgsqlParameter<int>("max_jobs_count", maxJobsCount));
 
         await connection.OpenAsync(cancellationToken);
@@ -72,8 +71,8 @@ internal class PostgreSqlJobRepository : IJobRepository
         await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
         await using var command = connection.CreateCommand();
         command.CommandText = """
-                              insert into jobs (id, state, created_at, base_type, method, arguments, server_name, cron, group_name)
-                              values (@id, @state, @created_at, @base_type, @method, @arguments, @server_name, @cron, @group_name);
+                              insert into jobs (id, state, created_at, base_type, method, arguments, server_name, cron, group_name, row_version)
+                              values (@id, @state, @created_at, @base_type, @method, @arguments, @server_name, @cron, @group_name, @row_version);
                               """;
         command.Parameters.Add(new NpgsqlParameter("id", job.Id));
         command.Parameters.Add(new NpgsqlParameter("state", (int)job.JobState)); // todo: remove boxing
@@ -81,12 +80,11 @@ internal class PostgreSqlJobRepository : IJobRepository
         command.Parameters.Add(new NpgsqlParameter("base_type", job.Descriptor.Method.TypeName));
         command.Parameters.Add(new NpgsqlParameter("method", job.Descriptor.Method.Name));
         command.Parameters.Add(new NpgsqlParameter("arguments", _serializer.Serialize(job.Descriptor.Arguments)));
-        command.Parameters.Add(new NpgsqlParameter("server_name",
-            job.ServerName is null ? DBNull.Value : job.ServerName));
+        command.Parameters.Add(new NpgsqlParameter("server_name", job.ServerName is null ? DBNull.Value : job.ServerName));
         command.Parameters.Add(new NpgsqlParameter("cron", job.Cron is null ? DBNull.Value : job.Cron));
         command.Parameters.Add(new NpgsqlParameter("group_name", job.GroupName is null ? DBNull.Value : job.GroupName));
-        command.Parameters.Add(new NpgsqlParameter("next_occurrence_at",
-            job.NextOccurrenceAt is null ? DBNull.Value : job.NextOccurrenceAt));
+        command.Parameters.Add(new NpgsqlParameter("next_occurrence_at", job.NextOccurrenceAt is null ? DBNull.Value : job.NextOccurrenceAt));
+        command.Parameters.Add(new NpgsqlParameter<int>("row_version", job.RowVersion));
 
         await connection.OpenAsync(cancellationToken);
         await command.ExecuteNonQueryAsync(cancellationToken);
@@ -97,7 +95,7 @@ internal class PostgreSqlJobRepository : IJobRepository
         await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
         await using var command = connection.CreateCommand();
         command.CommandText = """
-                              select id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at
+                              select id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at, row_version
                               from jobs where id = @id
                               """;
         command.Parameters.Add(new NpgsqlParameter("id", jobId));
@@ -130,7 +128,8 @@ internal class PostgreSqlJobRepository : IJobRepository
                                   server_name = @server_name,
                                   cron = @cron,
                                   group_name = @group_name,
-                                  next_occurrence_at = @next_occurrence_at
+                                  next_occurrence_at = @next_occurrence_at,
+                                  row_version = @row_version
                               where jobs.id = @id;
                               """;
         command.Parameters.Add(new NpgsqlParameter("id", job.Id));
@@ -188,6 +187,8 @@ internal class PostgreSqlJobRepository : IJobRepository
 
         var method = new Method(baseType, methodName);
 
+        var rowVersion = reader.GetInt32(10);
+
         return new Job
         {
             Id = id,
@@ -197,7 +198,8 @@ internal class PostgreSqlJobRepository : IJobRepository
             Cron = cron,
             ServerName = serverName,
             GroupName = groupName,
-            NextOccurrenceAt = nextOccurrenceAt
+            NextOccurrenceAt = nextOccurrenceAt,
+            RowVersion = rowVersion
         };
     }
 }

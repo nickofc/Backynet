@@ -11,7 +11,8 @@ public static class JobFactory
             Id = Guid.NewGuid(),
             JobState = JobState.Created,
             CreatedAt = DateTimeOffset.UtcNow,
-            Descriptor = jobDescriptor
+            Descriptor = jobDescriptor,
+            RowVersion = 1
         };
 
         return job;
