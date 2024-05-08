@@ -87,6 +87,8 @@ internal sealed class BackynetServer : IBackynetServer
 
         async Task WorkerTaskCore()
         {
+            // todo: przemysleć jak zminimalizować opoźnienie między dodaniem joba a podjęciem go przez workera
+
             var jobs = await _jobRepository.Acquire(_serverOptions.ServerName, _threadPool.AvailableThreadCount, cancellationToken);
 
             if (jobs.Count == 0)
@@ -102,40 +104,5 @@ internal sealed class BackynetServer : IBackynetServer
 
             await _threadPool.WaitForAvailableThread(cancellationToken);
         }
-    }
-}
-
-public class WatchdogService
-{
-    private readonly List<Job> _jobs = new List<Job>();
-    
-    public WatchdogScope Log(Job job)
-    {
-        _jobs.Add(job);
-        return new WatchdogScope(this, job);
-    }
-
-    public void Delete(Job job)
-    {
-        _jobs.Remove(job);
-    }
-}
-
-public class WatchdogScope : IDisposable
-{
-    private readonly WatchdogService _watchdogService;
-    private readonly Job _job;
-
-    public WatchdogScope(WatchdogService watchdogService, Job job)
-    {
-        _watchdogService = watchdogService;
-        _job = job;
-    }
-
-    public CancellationToken CancellationToken { get; }
-
-    public void Dispose()
-    {
-        _watchdogService.Delete(_job);
     }
 }

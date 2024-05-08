@@ -13,13 +13,13 @@ public sealed class ThreadPool : IThreadPool, IDisposable
 
     public int AvailableThreadCount => _availableThreadCount;
 
-    public Task Post(Func<Task> methodCall)
+    public async Task Post(Func<Task> methodCall, CancellationToken cancellationToken = default)
     {
+        await _semaphoreSlim.WaitAsync(cancellationToken);
+        Interlocked.Decrement(ref _availableThreadCount);
+
         _ = Task.Run(async () =>
         {
-            await _semaphoreSlim.WaitAsync();
-            Interlocked.Decrement(ref _availableThreadCount);
-
             try
             {
                 await methodCall();
@@ -29,9 +29,7 @@ public sealed class ThreadPool : IThreadPool, IDisposable
                 _semaphoreSlim.Release();
                 Interlocked.Increment(ref _availableThreadCount);
             }
-        });
-
-        return Task.CompletedTask;
+        }, CancellationToken.None);
     }
 
     public Task WaitForAvailableThread(CancellationToken cancellationToken)

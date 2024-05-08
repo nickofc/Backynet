@@ -13,6 +13,8 @@ public class PostgresRepositoryTests : IDisposable, IAsyncDisposable
         var serializer = new DefaultJsonSerializer();
         var repository = new PostgreSqlJobRepository(factory, serializer,
             new PostgreSqlJobRepositoryOptions { MaxTimeWithoutHeartbeat = TimeSpan.FromSeconds(30) });
+        var serverService = new ServerService(factory, new ServerServiceOptions { MaxTimeWithoutHeartbeat = TimeSpan.FromSeconds(30) });
+        await serverService.Heartbeat(serverName);
 
         for (var i = 0; i < 10; i++)
         {
