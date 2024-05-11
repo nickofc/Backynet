@@ -2,8 +2,5 @@
 
 public interface ISystemClock
 {
-    DateTimeOffset UtcNow
-    {
-        get { return DateTimeOffset.UtcNow; }
-    }
+    DateTimeOffset UtcNow { get; }
 }

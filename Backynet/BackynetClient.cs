@@ -47,10 +47,6 @@ internal sealed class BackynetClient : IBackynetClient
         var jobDescriptor = JobDescriptorFactory.Create(expression);
         var job = JobFactory.Create(jobDescriptor);
         job.GroupName = groupName;
-        job.NextOccurrenceAt = job.Cron != null
-            ? throw new NotImplementedException()
-            : DateTimeOffset.Now;
-        job.JobState = JobState.Scheduled;
         await _jobRepository.Add(job, cancellationToken);
         return job.Id.ToString();
     }

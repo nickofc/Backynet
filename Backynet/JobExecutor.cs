@@ -1,5 +1,4 @@
 using Backynet.Abstraction;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Backynet;
 
@@ -7,183 +6,83 @@ public class JobExecutor : IJobExecutor
 {
     private readonly IJobDescriptorExecutor _jobDescriptorExecutor;
     private readonly IJobRepository _jobRepository;
+    private readonly ISystemClock _systemClock;
 
-    public JobExecutor(IJobDescriptorExecutor jobDescriptorExecutor, IJobRepository jobRepository)
+    public JobExecutor(IJobDescriptorExecutor jobDescriptorExecutor, IJobRepository jobRepository, ISystemClock systemClock)
     {
         _jobDescriptorExecutor = jobDescriptorExecutor;
         _jobRepository = jobRepository;
+        _systemClock = systemClock;
     }
 
     // todo: state machine for jobs?
     public async Task Execute(Job job, CancellationToken cancellationToken = default)
     {
-        try
+        if (job.JobState == JobState.Created)
         {
-            await _jobDescriptorExecutor.Execute(job.Descriptor, cancellationToken);
+            var nowUtc = _systemClock.UtcNow;
 
-            job.JobState = JobState.Succeeded;
+            if (job.NextOccurrenceAt.HasValue && job.NextOccurrenceAt > nowUtc)
+            {
+                job.JobState = JobState.Scheduled;
+                await _jobRepository.Update(job.Id, job, cancellationToken);
+            }
+
+            if (job.NextOccurrenceAt.HasValue && job.NextOccurrenceAt <= nowUtc)
+            {
+                job.JobState = JobState.Enqueued;
+                await _jobRepository.Update(job.Id, job, cancellationToken);
+            }
+            
+            if (!job.NextOccurrenceAt.HasValue && string.IsNullOrEmpty(job.Cron))
+            {
+                job.JobState = JobState.Enqueued;
+                await _jobRepository.Update(job.Id, job, cancellationToken);
+            }
+        }
+
+        if (job.JobState == JobState.Scheduled && job.NextOccurrenceAt <= _systemClock.UtcNow)
+        {
+            job.JobState = JobState.Enqueued;
             await _jobRepository.Update(job.Id, job, cancellationToken);
         }
-        catch (Exception)
+
+        if (job.JobState == JobState.Enqueued)
         {
-            job.JobState = JobState.Failed;
-            await _jobRepository.Update(job.Id, job, cancellationToken);
+            var retryCount = 0;
+            var maxRetryCount = 5;
+
+            if (job.Context.TryGetValue("retry-count", out var retryCountValue))
+            {
+                retryCount = Convert.ToInt32(retryCountValue);
+            }
+
+            if (job.Context.TryGetValue("max-retry-count", out var maxRetryCountValue))
+            {
+                maxRetryCount = Convert.ToInt32(maxRetryCountValue);
+            }
+
+            if (retryCount >= maxRetryCount)
+            {
+                job.JobState = JobState.Failed;
+                await _jobRepository.Update(job.Id, job, cancellationToken);
+                return;
+            }
+
+            try
+            {
+                await _jobDescriptorExecutor.Execute(job.Descriptor, cancellationToken);
+                job.JobState = JobState.Succeeded;
+            }
+            catch (JobDescriptorExecutorException exception)
+            {
+                job.Errors.Add(exception);
+                job.Context["retry-count"] = $"{retryCount + 1}";
+                job.JobState = JobState.Scheduled;
+                job.NextOccurrenceAt = _systemClock.UtcNow.AddSeconds(1);
+                job.ServerName = null;
+                await _jobRepository.Update(job.Id, job, cancellationToken);
+            }
         }
     }
 }
-
-public class JobStateFactory
-{
-    private readonly IServiceProvider _serviceProvider;
-
-    public JobStateFactory(IServiceProvider serviceProvider)
-    {
-        _serviceProvider = serviceProvider;
-    }
-
-    private static readonly Dictionary<JobState, Type> InternalStateMap = new()
-    {
-        { JobState.Created, typeof(CreatedState) },
-        { JobState.Scheduled, typeof(ScheduledState) }
-    };
-
-    public bool TryCreate(JobState jobState, out IState? state)
-    {
-        if (!InternalStateMap.TryGetValue(jobState, out var type))
-        {
-            state = null;
-            return false;
-        }
-
-        var service = _serviceProvider.GetRequiredService(type);
-        state = service as IState;
-
-        return true;
-    }
-}
-
-public interface IState
-{
-    void SetContext();
-    ValueTask Execute(CancellationToken cancellationToken);
-}
-
-public class CreatedState : IState
-{
-    public void SetContext()
-    {
-        throw new NotImplementedException();
-    }
-
-    public ValueTask Execute(CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-}
-
-public class ScheduledState : IState
-{
-    public void SetContext()
-    {
-        throw new NotImplementedException();
-    }
-
-    public ValueTask Execute(CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
-}
-
-// public class FailedState : IState<JobState>
-// {
-//     public void SetContext()
-//     {
-//         throw new NotImplementedException();
-//     }
-//
-//     ValueTask<JobState> IState<JobState>.Execute(CancellationToken cancellationToken)
-//     {
-//         return new ValueTask<JobState>(JobState.Created);
-//     }
-// }
-//
-// public class CreatedState : IState
-// {
-//     private readonly ICron _cron;
-//     private readonly ISystemClock _systemClock;
-//     private readonly IJobRepository _jobRepository;
-//
-//     public CreatedState(ICron cron, IJobRepository jobRepository, ISystemClock systemClock)
-//     {
-//         _cron = cron;
-//         _jobRepository = jobRepository;
-//         _systemClock = systemClock;
-//     }
-//
-//     public override async ValueTask Execute()
-//     {
-//         var job = Context.Job;
-//         DateTimeOffset? jobNextOccurrence = null;
-//
-//         if (job.NextOccurrenceAt != null)
-//         {
-//             jobNextOccurrence = job.NextOccurrenceAt;
-//         }
-//         else if (job.Cron != null)
-//         {
-//             jobNextOccurrence = _cron.GetNextOccurrence(job.Cron, _systemClock.UtcNow);
-//         }
-//
-//         job.NextOccurrenceAt = jobNextOccurrence;
-//         job.JobState = JobState.Scheduled;
-//
-//         await _jobRepository.Update(job.Id, job);
-//     }
-//
-//     public ValueTask Execute(CancellationToken cancellationToken)
-//     {
-//         throw new NotImplementedException();
-//     }
-// }
-//
-// public class ScheduledState : State
-// {
-//     private readonly ISystemClock _systemClock;
-//     private readonly IJobExecutor _jobExecutor;
-//
-//     public ScheduledState(ISystemClock systemClock, IJobExecutor jobExecutor)
-//     {
-//         _systemClock = systemClock;
-//         _jobExecutor = jobExecutor;
-//     }
-//
-//     public override async ValueTask Perform()
-//     {
-//         var job = Context.Job;
-//
-//         if (job.NextOccurrenceAt == null)
-//         {
-//             throw new InvalidOperationException();
-//         }
-//
-//         if (job.NextOccurrenceAt > _systemClock.UtcNow)
-//         {
-//             return;
-//         }
-//     }
-// }
-//
-// public class ProcessingState : State
-// {
-//     private readonly IJobExecutor _jobExecutor;
-//
-//     public ProcessingState(IJobExecutor jobExecutor)
-//     {
-//         _jobExecutor = jobExecutor;
-//     }
-//
-//     public override async ValueTask Perform()
-//     {
-//         await _jobExecutor.Execute(Context.Job);
-//     }
-// }

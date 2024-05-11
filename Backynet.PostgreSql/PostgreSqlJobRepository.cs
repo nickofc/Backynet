@@ -8,15 +8,17 @@ internal class PostgreSqlJobRepository : IJobRepository
     private readonly NpgsqlConnectionFactory _npgsqlConnectionFactory;
     private readonly ISerializer _serializer;
     private readonly IPostgreSqlJobRepositoryOptions _postgreSqlJobRepositoryOptions;
+    private readonly ISystemClock _systemClock;
 
     public PostgreSqlJobRepository(
         NpgsqlConnectionFactory npgsqlConnectionFactory,
         ISerializer serializer,
-        IPostgreSqlJobRepositoryOptions postgreSqlJobRepositoryOptions)
+        IPostgreSqlJobRepositoryOptions postgreSqlJobRepositoryOptions, ISystemClock systemClock)
     {
         _npgsqlConnectionFactory = npgsqlConnectionFactory;
         _serializer = serializer;
         _postgreSqlJobRepositoryOptions = postgreSqlJobRepositoryOptions;
+        _systemClock = systemClock;
     }
 
     private static readonly int[] IntermediateStates =
@@ -33,25 +35,22 @@ internal class PostgreSqlJobRepository : IJobRepository
         await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
         await using var command = connection.CreateCommand();
         command.CommandText = """
-                              WITH unassigned_jobs
-                                  AS
-                                  (
-                                  SELECT *
-                                  FROM jobs j
-                                  WHERE (j.server_name IS NULL OR j.server_name NOT IN (SELECT s.server_name FROM servers s)) and j.state = ANY (@states)
-                                  LIMIT @max_jobs_count
-                                  FOR UPDATE SKIP LOCKED 
-                                  )
-
                               UPDATE jobs
                               SET server_name = @server_name
-                              WHERE id IN (SELECT id FROM unassigned_jobs)
-                              RETURNING id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at, row_version
+                              WHERE id IN (SELECT job.id
+                                           FROM jobs job
+                                           WHERE (job.server_name IS NULL OR job.server_name NOT IN (SELECT server.server_name FROM servers server))
+                                             AND (job.next_occurrence_at IS NULL OR job.next_occurrence_at <= @now)
+                                             AND (job.state = ANY (@intermediate_states))
+                                           ORDER BY next_occurrence_at
+                                               FOR UPDATE SKIP LOCKED
+                                           LIMIT @max_rows)
+                              RETURNING id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at, row_version, errors, context
                               """;
         command.Parameters.Add(new NpgsqlParameter<string>("server_name", serverName));
-        command.Parameters.Add(new NpgsqlParameter<int[]>("states", IntermediateStates));
-        command.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("heartbeat_on", DateTimeOffset.UtcNow - _postgreSqlJobRepositoryOptions.MaxTimeWithoutHeartbeat));
-        command.Parameters.Add(new NpgsqlParameter<int>("max_jobs_count", maxJobsCount));
+        command.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", _systemClock.UtcNow));
+        command.Parameters.Add(new NpgsqlParameter<int[]>("intermediate_states", IntermediateStates));
+        command.Parameters.Add(new NpgsqlParameter<int>("max_rows", maxJobsCount));
 
         await connection.OpenAsync(cancellationToken);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
@@ -71,8 +70,8 @@ internal class PostgreSqlJobRepository : IJobRepository
         await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
         await using var command = connection.CreateCommand();
         command.CommandText = """
-                              insert into jobs (id, state, created_at, base_type, method, arguments, server_name, cron, group_name, row_version)
-                              values (@id, @state, @created_at, @base_type, @method, @arguments, @server_name, @cron, @group_name, @row_version);
+                              insert into jobs (id, state, created_at, base_type, method, arguments, server_name, cron, group_name, row_version, errors, context)
+                              values (@id, @state, @created_at, @base_type, @method, @arguments, @server_name, @cron, @group_name, @row_version, @errors, @context);
                               """;
         command.Parameters.Add(new NpgsqlParameter("id", job.Id));
         command.Parameters.Add(new NpgsqlParameter("state", (int)job.JobState)); // todo: remove boxing
@@ -85,6 +84,8 @@ internal class PostgreSqlJobRepository : IJobRepository
         command.Parameters.Add(new NpgsqlParameter("group_name", job.GroupName is null ? DBNull.Value : job.GroupName));
         command.Parameters.Add(new NpgsqlParameter("next_occurrence_at", job.NextOccurrenceAt is null ? DBNull.Value : job.NextOccurrenceAt));
         command.Parameters.Add(new NpgsqlParameter<int>("row_version", job.RowVersion));
+        command.Parameters.Add(new NpgsqlParameter("errors", _serializer.Serialize(job.Errors ?? new List<Exception>())));
+        command.Parameters.Add(new NpgsqlParameter("context", _serializer.Serialize(job.Context ?? new Dictionary<string, string>())));
 
         await connection.OpenAsync(cancellationToken);
         await command.ExecuteNonQueryAsync(cancellationToken);
@@ -95,7 +96,7 @@ internal class PostgreSqlJobRepository : IJobRepository
         await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
         await using var command = connection.CreateCommand();
         command.CommandText = """
-                              select id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at, row_version
+                              select id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at, row_version, errors, context
                               from jobs where id = @id
                               """;
         command.Parameters.Add(new NpgsqlParameter("id", jobId));
@@ -129,7 +130,9 @@ internal class PostgreSqlJobRepository : IJobRepository
                                   cron = @cron,
                                   group_name = @group_name,
                                   next_occurrence_at = @next_occurrence_at,
-                                  row_version = @row_version
+                                  row_version = @row_version,
+                                  errors = @errors,
+                                  context = @context
                               where jobs.id = @id;
                               """;
         command.Parameters.Add(new NpgsqlParameter("id", job.Id));
@@ -138,10 +141,12 @@ internal class PostgreSqlJobRepository : IJobRepository
         command.Parameters.Add(new NpgsqlParameter("base_type", job.Descriptor.Method.TypeName));
         command.Parameters.Add(new NpgsqlParameter("method", job.Descriptor.Method.Name));
         command.Parameters.Add(new NpgsqlParameter("arguments", _serializer.Serialize(job.Descriptor.Arguments)));
-        command.Parameters.Add(new NpgsqlParameter("server_name", job.ServerName));
+        command.Parameters.Add(new NpgsqlParameter("server_name", job.ServerName is null ? DBNull.Value : job.ServerName));
         command.Parameters.Add(new NpgsqlParameter("cron", job.Cron is null ? DBNull.Value : job.Cron));
         command.Parameters.Add(new NpgsqlParameter("group_name", job.GroupName is null ? DBNull.Value : job.GroupName));
         command.Parameters.Add(new NpgsqlParameter("next_occurrence_at", job.NextOccurrenceAt is null ? DBNull.Value : job.NextOccurrenceAt));
+        command.Parameters.Add(new NpgsqlParameter("errors", _serializer.Serialize(job.Errors ?? new List<Exception>())));
+        command.Parameters.Add(new NpgsqlParameter("context", _serializer.Serialize(job.Context ?? new Dictionary<string, string>())));
 
         await connection.OpenAsync(cancellationToken);
         await command.ExecuteNonQueryAsync(cancellationToken);
@@ -189,6 +194,9 @@ internal class PostgreSqlJobRepository : IJobRepository
 
         var rowVersion = reader.GetInt32(10);
 
+        var errors = _serializer.Deserialize<List<Exception>>(reader.GetString(11));
+        var context = _serializer.Deserialize<Dictionary<string, string>>(reader.GetString(12));
+
         return new Job
         {
             Id = id,
@@ -199,7 +207,9 @@ internal class PostgreSqlJobRepository : IJobRepository
             ServerName = serverName,
             GroupName = groupName,
             NextOccurrenceAt = nextOccurrenceAt,
-            RowVersion = rowVersion
+            RowVersion = rowVersion,
+            Errors = errors,
+            Context = context
         };
     }
 }

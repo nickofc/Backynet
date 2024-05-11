@@ -13,4 +13,6 @@ public class Job
     public string? GroupName { get; set; }
     public DateTimeOffset? NextOccurrenceAt { get; set; }
     public int RowVersion { get; set; }
+    public List<Exception> Errors { get; set; }
+    public Dictionary<string, string> Context { get; set; }
 }

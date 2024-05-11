@@ -12,6 +12,7 @@ public static class JobFactory
             JobState = JobState.Created,
             CreatedAt = DateTimeOffset.UtcNow,
             Descriptor = jobDescriptor,
+            NextOccurrenceAt = DateTimeOffset.UtcNow,
             RowVersion = 1
         };
 

@@ -18,6 +18,7 @@ public class BackynetServicesBuilder
 
     public virtual BackynetServicesBuilder TryAddCoreServices()
     {
+        _services.TryAddSingleton<ISystemClock, SystemClock>();
         _services.TryAddSingleton<ILoggerFactory>(sp =>
         {
             var contextOptions = sp.GetRequiredService<IBackynetContextOptions>();
