@@ -7,17 +7,15 @@ internal class PostgreSqlJobRepository : IJobRepository
 {
     private readonly NpgsqlConnectionFactory _npgsqlConnectionFactory;
     private readonly ISerializer _serializer;
-    private readonly IPostgreSqlJobRepositoryOptions _postgreSqlJobRepositoryOptions;
     private readonly ISystemClock _systemClock;
 
     public PostgreSqlJobRepository(
         NpgsqlConnectionFactory npgsqlConnectionFactory,
         ISerializer serializer,
-        IPostgreSqlJobRepositoryOptions postgreSqlJobRepositoryOptions, ISystemClock systemClock)
+        ISystemClock systemClock)
     {
         _npgsqlConnectionFactory = npgsqlConnectionFactory;
         _serializer = serializer;
-        _postgreSqlJobRepositoryOptions = postgreSqlJobRepositoryOptions;
         _systemClock = systemClock;
     }
 

@@ -5,6 +5,8 @@ namespace Backynet;
 
 internal sealed class DefaultJsonSerializer : ISerializer
 {
+    public static readonly ISerializer Instance = new DefaultJsonSerializer();
+    
     private static readonly JsonSerializerSettings DefaultJsonSerializerSettings = new()
     {
         TypeNameHandling = TypeNameHandling.Auto
