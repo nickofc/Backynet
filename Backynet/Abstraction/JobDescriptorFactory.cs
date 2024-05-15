@@ -78,6 +78,11 @@ public static class JobDescriptorFactory
         {
             return constantExpression.Value;
         }
+        
+        if (expression is MemberInitExpression memberInitExpression)
+        {
+            var d = memberInitExpression.Bindings[0];
+        }
 
         throw new NotSupportedException(expression.ToString());
     }

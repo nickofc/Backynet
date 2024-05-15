@@ -9,7 +9,7 @@ public class SerializerTests
     [Fact]
     public void Should_Serialize_With_Valid_Types()
     {
-        var jobDescriptor = JobDescriptorFactory.Create(() => Run(1, 5, 1_000_000_000));
+        var jobDescriptor = JobDescriptorFactory.Create(() => Run(1, 5, 1_000_000_000, new Dto { Username = "test-username" }));
 
         var payload = _serializer.Serialize(jobDescriptor.Arguments);
         var deserialized = _serializer.Deserialize<IArgument[]>(payload);
@@ -17,8 +17,13 @@ public class SerializerTests
         Assert.Equal(jobDescriptor.Arguments, deserialized);
     }
 
-    private static Task Run(int argA, int argB, long argC)
+    private static Task Run(int argA, int argB, long argC, Dto dto)
     {
         return Task.CompletedTask;
+    }
+
+    private class Dto
+    {
+        public string Username { get; set; }
     }
 }   

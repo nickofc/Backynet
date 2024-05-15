@@ -29,12 +29,12 @@ public readonly struct Method : IMethod
 
 public readonly struct Argument : IArgument
 {
-    public string? TypeName { get; }
+    public string TypeName { get; }
     public object? Value { get; }
 
-    public Argument(string? typeName, object? value)
+    public Argument(string typeName, object? value)
     {
         TypeName = typeName;
-        Value = value;
+        Value = Convert.ChangeType(value, Type.GetType(typeName)!);
     }
 }
