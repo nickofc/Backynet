@@ -30,7 +30,7 @@ internal sealed class BackynetServer : IBackynetServer
 
     public Task Start(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Staring background process");
+        _logger.WorkerStarting();
 
         var combinedTasks = Task.WhenAll(HeartbeatTask(cancellationToken), WorkerTask(cancellationToken));
         return combinedTasks.IsCompleted ? combinedTasks : Task.CompletedTask;
@@ -99,7 +99,7 @@ internal sealed class BackynetServer : IBackynetServer
 
             foreach (var job in jobs)
             {
-                await _threadPool.Post(() => _jobExecutor.Execute(job, cancellationToken));
+                await _threadPool.Post(() => _jobExecutor.Execute(job, cancellationToken), cancellationToken);
             }
 
             await _threadPool.WaitForAvailableThread(cancellationToken);
