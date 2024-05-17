@@ -1,3 +1,4 @@
+using System.Buffers;
 using Backynet.Abstraction;
 using Newtonsoft.Json;
 
@@ -22,4 +23,10 @@ internal sealed class DefaultJsonSerializer : ISerializer
         var obj = JsonConvert.DeserializeObject<T>(payload, DefaultJsonSerializerSettings);
         return obj == null ? throw new InvalidOperationException() : obj;
     }
+}
+
+internal interface IFastSerializer
+{
+    Stream Serialize<T>(T instance);
+    T Deserialize<T>(Stream stream);
 }
