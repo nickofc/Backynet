@@ -1,5 +1,6 @@
 using Backynet.Abstraction;
 using Backynet.Options;
+using Xunit.Abstractions;
 
 namespace Backynet.Tests;
 
@@ -10,12 +11,13 @@ public class BackynetClientTests
         public IBackynetServer BackynetServer { get; private set; }
         public IBackynetClient BackynetClient { get; private set; }
 
-        public Sut()
+        public Sut(ITestOutputHelper testOutputHelper)
         {
             var optionsBuilder = new BackynetContextOptionsBuilder()
                 .UseMaxTimeWithoutHeartbeat(TimeSpan.FromSeconds(30))
-                .UsePostgreSql(TestContext.ConnectionString);
-            
+                .UsePostgreSql(TestContext.ConnectionString)
+                .UseLoggerFactory(new DebugLoggerFactory(testOutputHelper));
+
             var backynetContext = new BackynetContext(optionsBuilder.Options);
 
             BackynetServer = backynetContext.Server;
@@ -40,15 +42,18 @@ public class BackynetClientTests
         }
     }
 
-    public BackynetClientTests()
+    private readonly ITestOutputHelper _testOutputHelper;
+
+    public BackynetClientTests(ITestOutputHelper testOutputHelper)
     {
+        _testOutputHelper = testOutputHelper;
         WasExecuted.Reset();
     }
 
     [Fact(Timeout = 60 * 1000)]
     public async Task Should_Execute_Action_Job_When_Job_Was_Enqueued()
     {
-        using var sut = new Sut();
+        using var sut = new Sut(_testOutputHelper);
         await sut.Start();
 
         await sut.BackynetClient.EnqueueAsync(() => FakeSyncMethod(), CancellationToken.None);
@@ -59,7 +64,7 @@ public class BackynetClientTests
     [Fact(Timeout = 60 * 1000)]
     public async Task Should_Execute_Func_Job_When_Job_Was_Enqueued()
     {
-        using var sut = new Sut();
+        using var sut = new Sut(_testOutputHelper);
         await sut.Start();
 
         await sut.BackynetClient.EnqueueAsync(() => FakeAsyncMethod(), CancellationToken.None);
