@@ -1,5 +1,3 @@
-using System.Buffers.Text;
-using System.Text;
 using Backynet.Abstraction;
 using Npgsql;
 
@@ -45,7 +43,7 @@ internal class PostgreSqlJobRepository : IJobRepository
                                            ORDER BY next_occurrence_at
                                                FOR UPDATE SKIP LOCKED
                                            LIMIT @max_rows)
-                              RETURNING id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at, row_version, errors, context
+                              RETURNING id, state, created_at, descriptor, server_name, cron, group_name, next_occurrence_at, row_version, errors, context
                               """;
         command.Parameters.Add(new NpgsqlParameter<string>("server_name", serverName));
         command.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", _systemClock.UtcNow));
@@ -70,22 +68,21 @@ internal class PostgreSqlJobRepository : IJobRepository
         await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
         await using var command = connection.CreateCommand();
         command.CommandText = """
-                              insert into jobs (id, state, created_at, base_type, method, arguments, server_name, cron, group_name, row_version, errors, context)
-                              values (@id, @state, @created_at, @base_type, @method, @arguments, @server_name, @cron, @group_name, @row_version, @errors, @context);
+                              insert into jobs (id, state, created_at, descriptor, server_name, cron, group_name, row_version, errors, context)
+                              values (@id, @state, @created_at, @descriptor, @server_name, @cron, @group_name, @row_version, @errors, @context);
                               """;
-        command.Parameters.Add(new NpgsqlParameter("id", job.Id));
-        command.Parameters.Add(new NpgsqlParameter("state", (int)job.JobState)); // todo: remove boxing
-        command.Parameters.Add(new NpgsqlParameter("created_at", job.CreatedAt));
-        command.Parameters.Add(new NpgsqlParameter("base_type", job.Descriptor.Method.TypeName));
-        command.Parameters.Add(new NpgsqlParameter("method", job.Descriptor.Method.Name));
-        command.Parameters.Add(new NpgsqlParameter("arguments", _serializer.Serialize(job.Descriptor.Arguments)));
-        command.Parameters.Add(new NpgsqlParameter("server_name", job.ServerName is null ? DBNull.Value : job.ServerName));
+
+        command.Parameters.Add(new NpgsqlParameter<Guid>("id", job.Id));
+        command.Parameters.Add(new NpgsqlParameter<int>("state", (int)job.JobState)); // todo: remove boxing
+        command.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("created_at", job.CreatedAt));
+        command.Parameters.Add(new NpgsqlParameter<byte[]>("descriptor", _serializer.Serialize(job.Descriptor).ToArray())); // todo: replace ToArray!!
+        command.Parameters.Add(new NpgsqlParameter("server_name", job.ServerName is null ? DBNull.Value : job.ServerName)); // todo: usunac nullable - boxing
         command.Parameters.Add(new NpgsqlParameter("cron", job.Cron is null ? DBNull.Value : job.Cron));
         command.Parameters.Add(new NpgsqlParameter("group_name", job.GroupName is null ? DBNull.Value : job.GroupName));
         command.Parameters.Add(new NpgsqlParameter("next_occurrence_at", job.NextOccurrenceAt is null ? DBNull.Value : job.NextOccurrenceAt));
         command.Parameters.Add(new NpgsqlParameter<int>("row_version", job.RowVersion));
-        command.Parameters.Add(new NpgsqlParameter("errors", _serializer.Serialize(job.Errors ?? new List<Exception>())));
-        command.Parameters.Add(new NpgsqlParameter("context", _serializer.Serialize(job.Context ?? new Dictionary<string, string>())));
+        command.Parameters.Add(new NpgsqlParameter<byte[]>("errors", _serializer.Serialize(job.Errors).ToArray()));
+        command.Parameters.Add(new NpgsqlParameter<byte[]>("context", _serializer.Serialize(job.Context).ToArray()));
 
         await connection.OpenAsync(cancellationToken);
         await command.ExecuteNonQueryAsync(cancellationToken);
@@ -96,22 +93,13 @@ internal class PostgreSqlJobRepository : IJobRepository
         await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
         await using var command = connection.CreateCommand();
         command.CommandText = """
-                              select id, state, created_at, base_type, method, arguments, server_name, cron, group_name, next_occurrence_at, row_version, errors, context
+                              select id, state, created_at, descriptor, server_name, cron, group_name, next_occurrence_at, row_version, errors, context
                               from jobs where id = @id
                               """;
-        command.Parameters.Add(new NpgsqlParameter("id", jobId));
-
+        command.Parameters.Add(new NpgsqlParameter<Guid>("id", jobId));
         await connection.OpenAsync(cancellationToken);
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-        var read = await reader.ReadAsync(cancellationToken);
-        Job? job = null;
-
-        if (read)
-        {
-            job = ParseJobRow(reader);
-        }
-
-        return job;
+        return await reader.ReadAsync(cancellationToken) ? ParseJobRow(reader) : null;
     }
 
     public async Task Update(Guid jobId, Job job, CancellationToken cancellationToken = default)
@@ -123,9 +111,6 @@ internal class PostgreSqlJobRepository : IJobRepository
                               set
                                   state = @state,
                                   created_at = @created_at,
-                                  base_type = @base_type,
-                                  method = @method,
-                                  arguments = @arguments,
                                   server_name = @server_name,
                                   cron = @cron,
                                   group_name = @group_name,
@@ -137,10 +122,7 @@ internal class PostgreSqlJobRepository : IJobRepository
                               """;
         command.Parameters.Add(new NpgsqlParameter("id", job.Id));
         command.Parameters.Add(new NpgsqlParameter("state", (int)job.JobState)); // todo: remove boxing
-        command.Parameters.Add(new NpgsqlParameter("created_at", job.CreatedAt));
-        command.Parameters.Add(new NpgsqlParameter("base_type", job.Descriptor.Method.TypeName));
-        command.Parameters.Add(new NpgsqlParameter("method", job.Descriptor.Method.Name));
-        command.Parameters.Add(new NpgsqlParameter("arguments", _serializer.Serialize(job.Descriptor.Arguments)));
+        command.Parameters.Add(new NpgsqlParameter<byte[]>("descriptor", _serializer.Serialize(job.Descriptor).ToArray()));
         command.Parameters.Add(new NpgsqlParameter("server_name", job.ServerName is null ? DBNull.Value : job.ServerName));
         command.Parameters.Add(new NpgsqlParameter("cron", job.Cron is null ? DBNull.Value : job.Cron));
         command.Parameters.Add(new NpgsqlParameter("group_name", job.GroupName is null ? DBNull.Value : job.GroupName));
@@ -156,53 +138,48 @@ internal class PostgreSqlJobRepository : IJobRepository
     {
         var id = reader.GetGuid(0);
         var state = reader.GetInt32(1);
-        var created = reader.GetDateTime(2);
-
-        var baseType = reader.GetString(3);
-        var methodName = reader.GetString(4);
-        var arguments = _serializer.Deserialize<IArgument[]>(GetData(reader.GetStream(5)));
+        var created = (DateTimeOffset)reader.GetDateTime(2);
+        var descriptor = _serializer.Deserialize<IJobDescriptor>(reader.GetFieldValue<byte[]>(3));
 
         string? serverName = null;
 
-        if (!reader.IsDBNull(6))
+        if (!reader.IsDBNull(4))
         {
-            serverName = reader.GetString(6);
+            serverName = reader.GetString(4);
         }
 
         string? cron = null;
 
-        if (!reader.IsDBNull(7))
+        if (!reader.IsDBNull(5))
         {
-            cron = reader.GetString(7);
+            cron = reader.GetString(5);
         }
 
         string? groupName = null;
 
-        if (!reader.IsDBNull(8))
+        if (!reader.IsDBNull(6))
         {
-            groupName = reader.GetString(8);
+            groupName = reader.GetString(6);
         }
 
         DateTimeOffset? nextOccurrenceAt = null;
 
-        if (!reader.IsDBNull(9))
+        if (!reader.IsDBNull(7))
         {
-            nextOccurrenceAt = reader.GetDateTime(9);
+            nextOccurrenceAt = reader.GetDateTime(7);
         }
 
-        var method = new Method(baseType, methodName);
+        var rowVersion = reader.GetInt32(8);
 
-        var rowVersion = reader.GetInt32(10);
-
-        var errors = _serializer.Deserialize<List<Exception>>(GetData(reader.GetStream(11)));
-        var context = _serializer.Deserialize<Dictionary<string, string>>(GetData(reader.GetStream(12)));
+        var errors = _serializer.Deserialize<List<Exception>>(reader.GetFieldValue<byte[]>(9));
+        var context = _serializer.Deserialize<Dictionary<string, string>>(reader.GetFieldValue<byte[]>(10));
 
         return new Job
         {
             Id = id,
+            Descriptor = descriptor,
             JobState = (JobState)state,
             CreatedAt = created,
-            Descriptor = new JobDescriptor(method, arguments),
             Cron = cron,
             ServerName = serverName,
             GroupName = groupName,
@@ -211,12 +188,5 @@ internal class PostgreSqlJobRepository : IJobRepository
             Errors = errors,
             Context = context
         };
-
-        ReadOnlyMemory<byte> GetData(Stream inputStream)
-        {
-            using var memoryStream = new MemoryStream((int)inputStream.Length);
-            inputStream.CopyTo(memoryStream);
-            return memoryStream.ToArray();
-        }
     }
 }
