@@ -1,3 +1,5 @@
+using System.Buffers.Text;
+using System.Text;
 using Backynet.Abstraction;
 using Npgsql;
 
@@ -158,7 +160,7 @@ internal class PostgreSqlJobRepository : IJobRepository
 
         var baseType = reader.GetString(3);
         var methodName = reader.GetString(4);
-        var arguments = _serializer.Deserialize<IArgument[]>(reader.GetString(5));
+        var arguments = _serializer.Deserialize<IArgument[]>(GetData(reader.GetStream(5)));
 
         string? serverName = null;
 
@@ -192,8 +194,8 @@ internal class PostgreSqlJobRepository : IJobRepository
 
         var rowVersion = reader.GetInt32(10);
 
-        var errors = _serializer.Deserialize<List<Exception>>(reader.GetString(11));
-        var context = _serializer.Deserialize<Dictionary<string, string>>(reader.GetString(12));
+        var errors = _serializer.Deserialize<List<Exception>>(GetData(reader.GetStream(11)));
+        var context = _serializer.Deserialize<Dictionary<string, string>>(GetData(reader.GetStream(12)));
 
         return new Job
         {
@@ -209,5 +211,12 @@ internal class PostgreSqlJobRepository : IJobRepository
             Errors = errors,
             Context = context
         };
+
+        ReadOnlyMemory<byte> GetData(Stream inputStream)
+        {
+            using var memoryStream = new MemoryStream((int)inputStream.Length);
+            inputStream.CopyTo(memoryStream);
+            return memoryStream.ToArray();
+        }
     }
 }

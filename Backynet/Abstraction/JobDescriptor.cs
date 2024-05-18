@@ -35,6 +35,6 @@ public readonly struct Argument : IArgument
     public Argument(string typeName, object? value)
     {
         TypeName = typeName;
-        Value = Convert.ChangeType(value, Type.GetType(typeName)!);
+        Value = value;
     }
 }

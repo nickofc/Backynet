@@ -2,6 +2,6 @@ namespace Backynet.Abstraction;
 
 public interface ISerializer
 {
-    string Serialize<T>(T instance);
-    T Deserialize<T>(string payload);
+    ReadOnlyMemory<byte> Serialize<T>(T instance);
+    T Deserialize<T>(ReadOnlyMemory<byte> data);
 }

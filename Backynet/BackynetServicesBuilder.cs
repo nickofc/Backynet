@@ -34,7 +34,7 @@ public class BackynetServicesBuilder
             var contextServices = sp.GetRequiredService<IBackynetContextServices>();
             return contextServices.CurrentContext.ContextOptions;
         });
-        _services.TryAddSingleton<ISerializer, DefaultJsonSerializer>();
+        _services.TryAddSingleton<ISerializer, MessagePackSerializerProvider>();
         _services.TryAddSingleton<IBackynetClient, BackynetClient>();
         _services.TryAddSingleton<IBackynetServer, BackynetServer>();
         _services.TryAddSingleton<IJobExecutor, JobExecutor>();

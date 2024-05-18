@@ -4,12 +4,12 @@ namespace Backynet.Tests;
 
 public class SerializerTests
 {
-    private readonly ISerializer _serializer = DefaultJsonSerializer.Instance;
+    private readonly ISerializer _serializer = new MessagePackSerializerProvider();
 
     [Fact]
     public void Should_Serialize_With_Valid_Types()
     {
-        var jobDescriptor = JobDescriptorFactory.Create(() => Run(1, 5, 1_000_000_000, new Dto { Username = "test-username" }));
+        var jobDescriptor = JobDescriptorFactory.Create(() => Run(1, 5, 1_000_000_000, null));
 
         var payload = _serializer.Serialize(jobDescriptor.Arguments);
         var deserialized = _serializer.Deserialize<IArgument[]>(payload);

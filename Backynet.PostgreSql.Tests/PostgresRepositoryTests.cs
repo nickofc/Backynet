@@ -13,9 +13,10 @@ public class PostgresRepositoryTests : IDisposable, IAsyncDisposable
     {
         var factory = new NpgsqlConnectionFactory(TestContext.ConnectionString);
         var serverService = new ServerService(factory, new ServerServiceOptions { MaxTimeWithoutHeartbeat = TimeSpan.FromSeconds(30) });
+        var serializer = new MessagePackSerializerProvider();
 
         _serverName = Guid.NewGuid().ToString();
-        _repository = new PostgreSqlJobRepository(factory, DefaultJsonSerializer.Instance, SystemClock.Instance);
+        _repository = new PostgreSqlJobRepository(factory, serializer, SystemClock.Instance);
         _serverServiceTask = serverService.Heartbeat(_serverName);
     }
 
