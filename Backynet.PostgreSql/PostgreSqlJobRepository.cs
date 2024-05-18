@@ -110,6 +110,7 @@ internal class PostgreSqlJobRepository : IJobRepository
                               update jobs
                               set
                                   state = @state,
+                                  descriptor = @descriptor,
                                   created_at = @created_at,
                                   server_name = @server_name,
                                   cron = @cron,
@@ -120,15 +121,16 @@ internal class PostgreSqlJobRepository : IJobRepository
                                   context = @context
                               where jobs.id = @id;
                               """;
-        command.Parameters.Add(new NpgsqlParameter("id", job.Id));
-        command.Parameters.Add(new NpgsqlParameter("state", (int)job.JobState)); // todo: remove boxing
+        command.Parameters.Add(new NpgsqlParameter<Guid>("id", job.Id));
+        command.Parameters.Add(new NpgsqlParameter<int>("state", (int)job.JobState)); // todo: remove boxing
         command.Parameters.Add(new NpgsqlParameter<byte[]>("descriptor", _serializer.Serialize(job.Descriptor).ToArray()));
+        command.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("created_at", job.CreatedAt));
         command.Parameters.Add(new NpgsqlParameter("server_name", job.ServerName is null ? DBNull.Value : job.ServerName));
         command.Parameters.Add(new NpgsqlParameter("cron", job.Cron is null ? DBNull.Value : job.Cron));
         command.Parameters.Add(new NpgsqlParameter("group_name", job.GroupName is null ? DBNull.Value : job.GroupName));
         command.Parameters.Add(new NpgsqlParameter("next_occurrence_at", job.NextOccurrenceAt is null ? DBNull.Value : job.NextOccurrenceAt));
-        command.Parameters.Add(new NpgsqlParameter("errors", _serializer.Serialize(job.Errors ?? new List<Exception>())));
-        command.Parameters.Add(new NpgsqlParameter("context", _serializer.Serialize(job.Context ?? new Dictionary<string, string>())));
+        command.Parameters.Add(new NpgsqlParameter<byte[]>("errors", _serializer.Serialize(job.Errors).ToArray()));
+        command.Parameters.Add(new NpgsqlParameter<byte[]>("context", _serializer.Serialize(job.Context).ToArray()));
 
         await connection.OpenAsync(cancellationToken);
         await command.ExecuteNonQueryAsync(cancellationToken);
