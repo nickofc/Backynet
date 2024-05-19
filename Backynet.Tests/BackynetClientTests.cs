@@ -4,44 +4,49 @@ using Xunit.Abstractions;
 
 namespace Backynet.Tests;
 
-public class BackynetClientTests
+public class Sut : IDisposable
 {
-    public class Sut : IDisposable
+    public IBackynetServer BackynetServer { get; private set; }
+    public IBackynetClient BackynetClient { get; private set; }
+
+    public Sut(ITestOutputHelper? testOutputHelper = null)
     {
-        public IBackynetServer BackynetServer { get; private set; }
-        public IBackynetClient BackynetClient { get; private set; }
+        var optionsBuilder = new BackynetContextOptionsBuilder()
+            .UseMaxTimeWithoutHeartbeat(TimeSpan.FromSeconds(30))
+            .UsePostgreSql(TestContext.ConnectionString);
 
-        public Sut(ITestOutputHelper testOutputHelper)
+        if (testOutputHelper != null)
         {
-            var optionsBuilder = new BackynetContextOptionsBuilder()
-                .UseMaxTimeWithoutHeartbeat(TimeSpan.FromSeconds(30))
-                .UsePostgreSql(TestContext.ConnectionString)
-                .UseLoggerFactory(new DebugLoggerFactory(testOutputHelper));
-
-            var backynetContext = new BackynetContext(optionsBuilder.Options);
-
-            BackynetServer = backynetContext.Server;
-            BackynetClient = backynetContext.Client;
+            optionsBuilder.UseLoggerFactory(new DebugLoggerFactory(testOutputHelper));
         }
 
-        private CancellationTokenSource _cancellationTokenSource;
-        private Task _workerTask;
+        var backynetContext = new BackynetContext(optionsBuilder.Options);
 
-        public async Task Start()
-        {
-            _cancellationTokenSource = new CancellationTokenSource();
-            _workerTask = BackynetServer.Start(_cancellationTokenSource.Token);
-
-            await _workerTask;
-        }
-
-        public void Dispose()
-        {
-            _cancellationTokenSource.Cancel();
-            _workerTask.Wait();
-        }
+        BackynetServer = backynetContext.Server;
+        BackynetClient = backynetContext.Client;
     }
 
+    private CancellationTokenSource _cancellationTokenSource;
+    private Task _workerTask;
+
+    public async Task Start()
+    {
+        _cancellationTokenSource = new CancellationTokenSource();
+        _workerTask = BackynetServer.Start(_cancellationTokenSource.Token);
+
+        await _workerTask;
+    }
+
+    public void Dispose()
+    {
+        _cancellationTokenSource.Cancel();
+        _workerTask.Wait();
+        GC.SuppressFinalize(this);
+    }
+}
+
+public class BackynetClientTests
+{
     private readonly ITestOutputHelper _testOutputHelper;
 
     public BackynetClientTests(ITestOutputHelper testOutputHelper)

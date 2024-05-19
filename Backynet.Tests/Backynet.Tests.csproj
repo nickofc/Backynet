@@ -25,5 +25,11 @@
         <ProjectReference Include="..\Backynet.Cron\Backynet.Cron.csproj" />
         <ProjectReference Include="..\Backynet.PostgreSql\Backynet.PostgreSql.csproj"/>
     </ItemGroup>
+
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+            <_Parameter1>Backynet.Tests.Performance</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
     
 </Project>
