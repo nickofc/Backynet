@@ -99,7 +99,7 @@ internal sealed class BackynetServer : IBackynetServer
 
             foreach (var job in jobs)
             {
-                await _threadPool.Post(() => _jobExecutor.Execute(job, cancellationToken), cancellationToken);
+                _ = _threadPool.Post(() => _jobExecutor.Execute(job, cancellationToken), cancellationToken);
             }
 
             await _threadPool.WaitForAvailableThread(cancellationToken);

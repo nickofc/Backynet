@@ -93,4 +93,30 @@ public class ThreadPoolTest
             await Task.Delay(-1, CancellationToken.None);
         }
     }
+
+    [Fact]
+    public async Task Should_Return_Immediate_When_Thread_Is_Available()
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        await ThreadPool.WaitForAvailableThread(cts.Token);
+
+        Assert.Equal(Options.MaxThreads, ThreadPool.AvailableThreadCount);
+    }
+
+    [Fact] // todo: rename
+    public async Task Should_Return_Immediate_When_Thread_Is_Available2()
+    {
+        for (var i = 0; i < Options.MaxThreads - 1; i++)
+        {
+            await ThreadPool.Post(() => Task.Delay(-1));
+        }
+
+        await ThreadPool.Post(() => Task.Delay(1000));
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await ThreadPool.WaitForAvailableThread(cts.Token);
+
+        Assert.Equal(1, ThreadPool.AvailableThreadCount);
+    }
 }

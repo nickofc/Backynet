@@ -122,7 +122,7 @@ internal class PostgreSqlJobRepository : IJobRepository
                                   context = @context
                               where jobs.id = @id;
                               """;
-        command.Parameters.Add(new NpgsqlParameter<Guid>("id", job.Id));
+        command.Parameters.Add(new NpgsqlParameter<Guid>("id", jobId));
         command.Parameters.Add(new NpgsqlParameter<int>("state", CastTo<int>.From(job.JobState)));
         command.Parameters.Add(new NpgsqlParameter<ReadOnlyMemory<byte>>("descriptor", _serializer.Serialize(job.Descriptor)));
         command.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("created_at", job.CreatedAt));
