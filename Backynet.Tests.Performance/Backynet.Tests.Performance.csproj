@@ -19,10 +19,4 @@
       <ProjectReference Include="..\Backynet\Backynet.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Reference Include="Backynet.Tests">
-        <HintPath>..\Backynet.Tests\bin\Release\net8.0\Backynet.Tests.dll</HintPath>
-      </Reference>
-    </ItemGroup>
-
 </Project>

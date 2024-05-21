@@ -1,6 +1,6 @@
 ﻿using JetBrains.Annotations;
 
-namespace Backynet.PostgreSql.Tests;
+namespace Backynet.Tests;
 
 [TestSubject(typeof(ThreadPool))]
 public class ThreadPoolTest
