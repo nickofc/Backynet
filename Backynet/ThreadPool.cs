@@ -3,13 +3,11 @@ namespace Backynet;
 public sealed class ThreadPool : IThreadPool, IDisposable
 {
     private readonly SemaphoreSlim _semaphoreSlim;
-    private readonly EventWaitHandle _taskCompletedEvent;
     private readonly IThreadPoolOptions _options;
 
     public ThreadPool(IThreadPoolOptions threadPoolOptions)
     {
         _options = threadPoolOptions;
-        _taskCompletedEvent = new AutoResetEvent(false);
         _semaphoreSlim = new SemaphoreSlim(threadPoolOptions.MaxThreads);
     }
 
@@ -29,7 +27,6 @@ public sealed class ThreadPool : IThreadPool, IDisposable
             finally
             {
                 _semaphoreSlim.Release();
-                _taskCompletedEvent.Set();
             }
         }, CancellationToken.None);
     }
@@ -40,14 +37,13 @@ public sealed class ThreadPool : IThreadPool, IDisposable
         {
             return Task.CompletedTask;
         }
-        
-        _taskCompletedEvent.WaitOne();
-        return Task.CompletedTask;
+
+        _semaphoreSlim.AvailableWaitHandle.WaitOne();
+        return Task.CompletedTask; //todo: obsluga tokena
     }
 
     public void Dispose()
     {
-        _taskCompletedEvent.Dispose();
         _semaphoreSlim.Dispose();
     }
 }
