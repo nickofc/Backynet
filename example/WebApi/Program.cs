@@ -81,7 +81,7 @@ namespace WebApplication2
 
     public class DefaultBackynetContext : BackynetContext
     {
-        public DefaultBackynetContext(BackynetContextOptions<DefaultBackynetContext> options) : base(options)
+        public DefaultBackynetContext(BackynetContextOptions options) : base(options)
         {
         }
     }
