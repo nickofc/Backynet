@@ -1,7 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
 using Hangfire;
 using Hangfire.PostgreSql;
-using Hangfire.PostgreSql.Factories;
 
 namespace Backynet.Tests.Performance;
 
@@ -17,18 +16,18 @@ public class HangfireWorkerBenchmark
     public void Setup()
     {
         _countdownEvent = new CountdownEvent(N);
-    }
 
-    [Benchmark]
-    public void Execute()
-    {
         GlobalConfiguration.Configuration
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
             .UseColouredConsoleLogProvider()
             .UseSimpleAssemblyNameTypeSerializer()
             .UseRecommendedSerializerSettings()
             .UsePostgreSqlStorage(TestContext.ConnectionString);
+    }
 
+    [Benchmark]
+    public void Execute()
+    {
         using var server = new BackgroundJobServer();
 
         for (var i = 0; i < N; i++)
