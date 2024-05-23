@@ -6,6 +6,7 @@
         <Nullable>enable</Nullable>
         <RootNamespace>Backynet</RootNamespace>
         <Version>0.0.1-alpha</Version>
+        <IsPackable>true</IsPackable>
         <PackageProjectUrl>https://github.com/nickofc/backynet</PackageProjectUrl>
         <PackageLicenseUrl>https://github.com/nickofc/backynet/blob/master/LICENSE</PackageLicenseUrl>
     </PropertyGroup>

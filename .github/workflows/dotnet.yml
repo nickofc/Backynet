@@ -24,5 +24,12 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
+    - name: Pack
+      run: dotnet pack --no-build -o ./nupkg
+    - name: Push
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+      run:  dotnet nuget push ./nupkg/*.nupkg -k $NUGET_API_KEY -s https://api.nuget.org/v3/index.json
+
 #    - name: Test
 #      run: dotnet test --no-build --verbosity normal
