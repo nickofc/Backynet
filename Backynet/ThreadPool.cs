@@ -39,7 +39,7 @@ public sealed class ThreadPool : IThreadPool, IDisposable
         }
 
         _semaphoreSlim.AvailableWaitHandle.WaitOne();
-        return Task.CompletedTask; //todo: obsluga tokena
+        return Task.CompletedTask; // todo: cts token!
     }
 
     public void Dispose()

@@ -12,10 +12,22 @@ public class HangfireBenchmark
         GlobalConfiguration.Configuration.UsePostgreSqlStorage(TestContext.ConnectionString);
     }
 
+    [IterationSetup]
+    public void Setup()
+    {
+        Clear.HangfireDatabase();
+    }
+
+    [Params(100)]
+    public int N { get; set; }
+
     [Benchmark]
     public void Enqueue()
     {
-        BackgroundJob.Enqueue(() => TestMethod());
+        for (var i = 0; i < N; i++)
+        {
+            BackgroundJob.Enqueue(() => TestMethod());
+        }
     }
 
     public static void TestMethod()

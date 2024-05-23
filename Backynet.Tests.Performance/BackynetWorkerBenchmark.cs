@@ -13,6 +13,7 @@ public class BackynetWorkerBenchmark
     [IterationSetup]
     public void Setup()
     {
+        Clear.BackynetDatabase();
         _countdownEvent = new CountdownEvent(N);
     }
     

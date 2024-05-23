@@ -13,6 +13,7 @@ public class Sut : IDisposable
     {
         var optionsBuilder = new BackynetContextOptionsBuilder()
             .UseMaxTimeWithoutHeartbeat(TimeSpan.FromSeconds(30))
+            .UseMaxThreads(Environment.ProcessorCount * 2)
             .UsePostgreSql(TestContext.ConnectionString);
 
         if (testOutputHelper != null)

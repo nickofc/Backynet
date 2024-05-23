@@ -46,3 +46,26 @@ public class DefaultBackynetContext : BackynetContext
 ```
 
 Check out more [examples](https://github.com/nickofc/backynet/tree/master/example/).
+
+# Benchmarks
+
+WorkerCount = 40
+
+```
+
+BenchmarkDotNet v0.13.12, Windows 10 (10.0.19044.4412/21H2/November2021Update)
+Intel Core i9-10900K CPU 3.70GHz, 1 CPU, 20 logical and 10 physical cores
+.NET SDK 9.0.100-preview.3.24204.13
+  [Host]     : .NET 8.0.3 (8.0.324.11423), X64 RyuJIT AVX2
+  Job-HUDYGN : .NET 8.0.3 (8.0.324.11423), X64 RyuJIT AVX2
+
+InvocationCount=1  UnrollFactor=1  
+
+```
+| Type              | Method       | N   | Mean     | Error    | StdDev   | Allocated  |
+|------------------ |------------- |---- |---------:|---------:|---------:|-----------:|
+| BackynetBenchmark | EnqueueAsync | 100 |  2.863 s | 0.0332 s | 0.0311 s |  680.91 KB |
+| HangfireBenchmark | Enqueue      | 100 | 23.130 s | 0.1433 s | 0.1270 s | 4244.99 KB |
+
+
+

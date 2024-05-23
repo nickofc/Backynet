@@ -15,6 +15,8 @@ public class HangfireWorkerBenchmark
     [IterationSetup]
     public void Setup()
     {
+        Clear.HangfireDatabase();
+
         _countdownEvent = new CountdownEvent(N);
 
         GlobalConfiguration.Configuration
@@ -28,7 +30,8 @@ public class HangfireWorkerBenchmark
     [Benchmark]
     public void Execute()
     {
-        using var server = new BackgroundJobServer();
+        using var server = new BackgroundJobServer(new BackgroundJobServerOptions 
+            { WorkerCount = Environment.ProcessorCount * 2 });
 
         for (var i = 0; i < N; i++)
         {
