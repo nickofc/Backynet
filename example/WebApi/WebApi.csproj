@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>WebApplication2</RootNamespace>
+        <WarningLevel>0</WarningLevel>
     </PropertyGroup>
 
     <ItemGroup>
