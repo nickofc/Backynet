@@ -4,7 +4,7 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Version>0.0.1</Version>
+        <Version>0.0.1-alpha</Version>
         <PackageProjectUrl>https://github.com/nickofc/backynet</PackageProjectUrl>
         <PackageLicenseUrl>https://github.com/nickofc/backynet/blob/master/LICENSE</PackageLicenseUrl>
     </PropertyGroup>
