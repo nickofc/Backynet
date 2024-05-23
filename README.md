@@ -51,8 +51,9 @@ Check out more [examples](https://github.com/nickofc/backynet/tree/master/exampl
 
 WorkerCount = 40
 
-```
+// todo: opis
 
+```
 BenchmarkDotNet v0.13.12, Windows 10 (10.0.19044.4412/21H2/November2021Update)
 Intel Core i9-10900K CPU 3.70GHz, 1 CPU, 20 logical and 10 physical cores
 .NET SDK 9.0.100-preview.3.24204.13
@@ -60,12 +61,22 @@ Intel Core i9-10900K CPU 3.70GHz, 1 CPU, 20 logical and 10 physical cores
   Job-HUDYGN : .NET 8.0.3 (8.0.324.11423), X64 RyuJIT AVX2
 
 InvocationCount=1  UnrollFactor=1  
-
 ```
 | Type              | Method       | N   | Mean     | Error    | StdDev   | Allocated  |
 |------------------ |------------- |---- |---------:|---------:|---------:|-----------:|
 | BackynetBenchmark | EnqueueAsync | 100 |  2.863 s | 0.0332 s | 0.0311 s |  680.91 KB |
 | HangfireBenchmark | Enqueue      | 100 | 23.130 s | 0.1433 s | 0.1270 s | 4244.99 KB |
 
+```
+BenchmarkDotNet v0.13.12, Windows 10 (10.0.19044.4412/21H2/November2021Update)
+Intel Core i9-10900K CPU 3.70GHz, 1 CPU, 20 logical and 10 physical cores
+.NET SDK 9.0.100-preview.3.24204.13
+  [Host]     : .NET 8.0.3 (8.0.324.11423), X64 RyuJIT AVX2
+  Job-PDYXJX : .NET 8.0.3 (8.0.324.11423), X64 RyuJIT AVX2
 
-
+InvocationCount=1  UnrollFactor=1  
+```
+| Type                    | Method  | N   | Mean     | Error    | StdDev   | Median   | Gen0      | Gen1      | Allocated |
+|------------------------ |-------- |---- |---------:|---------:|---------:|---------:|----------:|----------:|----------:|
+| BackynetWorkerBenchmark | Execute | 100 |  3.728 s | 0.2856 s | 0.8422 s |  3.032 s |         - |         - |   1.66 MB |
+| HangfireWorkerBenchmark | Execute | 100 | 20.693 s | 0.2027 s | 0.1797 s | 20.689 s | 1000.0000 | 1000.0000 |  15.09 MB |
