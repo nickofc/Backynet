@@ -1,5 +1,3 @@
-using System.Xml.XPath;
-using Backynet;
 using Backynet.Abstraction;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,7 +26,6 @@ public class ScopedJobDescriptorExecutorTest
     {
         public void DoWork()
         {
-            Console.WriteLine("hello world");
         }
     }
 }

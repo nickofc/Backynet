@@ -5,13 +5,14 @@ create table public.jobs
             primary key,
     state              integer                  not null,
     created_at         timestamp with time zone not null,
-    base_type          varchar,
-    method             varchar,
-    arguments          varchar,
+    descriptor         bytea,
     server_name        varchar,
     cron               varchar,
     group_name         varchar,
-    next_occurrence_at timestamp with time zone
+    next_occurrence_at timestamp with time zone,
+    row_version        integer,
+    errors             bytea,
+    context            bytea
 );
 
 create table public.groups
