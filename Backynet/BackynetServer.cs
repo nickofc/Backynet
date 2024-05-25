@@ -46,8 +46,7 @@ internal sealed class BackynetServer : IBackynetServer
             {
                 await HeartbeatTaskCore();
             }
-            catch (OperationCanceledException e)
-                when (e.CancellationToken == cancellationToken)
+            catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
             {
                 throw;
             }

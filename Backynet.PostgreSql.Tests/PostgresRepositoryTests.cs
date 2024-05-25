@@ -92,6 +92,39 @@ public class PostgresRepositoryTests : IDisposable, IAsyncDisposable
         Assert.True(jobs.All(x => x.ServerName == _serverName));
     }
 
+    [Fact]
+    public async Task Should_Update_Validate_Row_Version()
+    {
+        // arrange
+
+        var job1 = Job.Empty();
+        job1.JobState = JobState.Enqueued;
+        await _repository.Add(job1);
+
+        // act
+
+        var job2 = await _repository.Get(job1.Id);
+        job2!.ServerName = "test-server-name";
+
+        var job3 = await _repository.Get(job1.Id);
+        job3!.ServerName = "funky-server-name";
+
+        var update2 = await _repository.Update(job1.Id, job2);
+        var update3 = await _repository.Update(job1.Id, job3);
+        
+        // assert
+        
+        Assert.True(update2);
+        Assert.False(update3);
+        
+        var actualJob = await _repository.Get(job1.Id);
+        
+        actualJob!.RowVersion = 0; // ignore row_version comparison because it will be outdated
+        job2.RowVersion = 0;
+        
+        Assert.Equivalent(job2, actualJob);
+    }
+
     public async ValueTask DisposeAsync()
     {
         var factory = new NpgsqlConnectionFactory(TestContext.ConnectionString);

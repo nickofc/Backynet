@@ -103,7 +103,7 @@ internal class PostgreSqlJobRepository : IJobRepository
         return await reader.ReadAsync(cancellationToken) ? ParseJobRow(reader) : null;
     }
 
-    public async Task Update(Guid jobId, Job job, CancellationToken cancellationToken = default)
+    public async Task<bool> Update(Guid jobId, Job job, CancellationToken cancellationToken = default)
     {
         await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
         await using var command = connection.CreateCommand();
@@ -117,10 +117,10 @@ internal class PostgreSqlJobRepository : IJobRepository
                                   cron = @cron,
                                   group_name = @group_name,
                                   next_occurrence_at = @next_occurrence_at,
-                                  row_version = @row_version,
+                                  row_version = @row_version + 1,
                                   errors = @errors,
                                   context = @context
-                              where jobs.id = @id;
+                              where jobs.id = @id and jobs.row_version = @row_version;
                               """;
         command.Parameters.Add(new NpgsqlParameter<Guid>("id", jobId));
         command.Parameters.Add(new NpgsqlParameter<int>("state", CastTo<int>.From(job.JobState)));
@@ -130,11 +130,14 @@ internal class PostgreSqlJobRepository : IJobRepository
         command.Parameters.Add(new NpgsqlParameter<string?>("cron", job.Cron));
         command.Parameters.Add(new NpgsqlParameter<string?>("group_name", job.GroupName));
         command.Parameters.Add(new NpgsqlParameter<DateTimeOffset?>("next_occurrence_at", job.NextOccurrenceAt));
+        command.Parameters.Add(new NpgsqlParameter<int>("row_version", job.RowVersion));
         command.Parameters.Add(new NpgsqlParameter<ReadOnlyMemory<byte>>("errors", _serializer.Serialize(job.Errors)));
         command.Parameters.Add(new NpgsqlParameter<ReadOnlyMemory<byte>>("context", _serializer.Serialize(job.Context)));
 
         await connection.OpenAsync(cancellationToken);
-        await command.ExecuteNonQueryAsync(cancellationToken);
+        var rowsAffected = await command.ExecuteNonQueryAsync(cancellationToken);
+
+        return rowsAffected > 0;
     }
 
     private Job ParseJobRow(NpgsqlDataReader reader)

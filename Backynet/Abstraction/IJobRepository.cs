@@ -6,5 +6,5 @@ public interface IJobRepository
 
     Task Add(Job job, CancellationToken cancellationToken = default);
     Task<Job?> Get(Guid jobId, CancellationToken cancellationToken = default);
-    Task Update(Guid jobId, Job job, CancellationToken cancellationToken = default);
+    Task<bool> Update(Guid jobId, Job job, CancellationToken cancellationToken = default);
 }
