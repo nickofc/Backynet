@@ -12,6 +12,6 @@ public class MigrationServiceTests
     [Fact]
     public void Do()
     {
-        var s = _migrationService.FindAllMigrationScripts().ToArray();
+        var s = _migrationService.GetAllMigrationScripts().ToArray();
     }
 }

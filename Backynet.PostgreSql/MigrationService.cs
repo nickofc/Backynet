@@ -15,21 +15,46 @@ internal sealed class MigrationService
 
     public async Task Perform(CancellationToken cancellationToken)
     {
-        var scripts = FindAllMigrationScripts();
+        var scripts = GetAllMigrationScripts();
         await Execute(scripts, cancellationToken);
     }
 
-    public IEnumerable<string> FindAllMigrationScripts()
+    public IEnumerable<string> GetAllMigrationScripts()
     {
-        // 00000000_Name_Migration.sql
+        // 1_Name_Migration.sql
 
         var scripts = EmbeddedResource
             .Find(x => x.EndsWith("_Migration.sql", StringComparison.InvariantCulture), MigrationAssembly)
             .ToArray();
-        
-        // todo: sort by date/id
-        
-        return scripts;
+
+        var entries = new List<Entry>(scripts.Length);
+
+        foreach (var script in scripts)
+        {
+            var byDot = script.Split('.');
+            var byName = byDot[^2].Split('_');
+
+            entries.Add(new Entry(int.Parse(byName[0]), script));
+        }
+
+        var output = entries
+            .OrderBy(x => x.Order)
+            .Select(x => x.ResourceName)
+            .ToArray();
+
+        return output;
+    }
+
+    private readonly struct Entry
+    {
+        public int Order { get; }
+        public string ResourceName { get; }
+
+        public Entry(int order, string resourceName)
+        {
+            Order = order;
+            ResourceName = resourceName;
+        }
     }
 
     private async Task Execute(IEnumerable<string> scripts, CancellationToken cancellationToken)
