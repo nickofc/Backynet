@@ -1,4 +1,4 @@
-create table public.jobs
+create table jobs
 (
     id                 uuid                     not null
         constraint jobs_pk
@@ -15,7 +15,7 @@ create table public.jobs
     context            bytea
 );
 
-create table public.groups
+create table groups
 (
     group_name             varchar not null
         constraint groups_pk
@@ -23,7 +23,7 @@ create table public.groups
     max_concurrent_threads integer
 );
 
-create table public.servers
+create table servers
 (
     server_name  varchar not null
         constraint clients_pk

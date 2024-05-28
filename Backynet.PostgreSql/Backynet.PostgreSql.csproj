@@ -10,17 +10,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Backynet.AspNetCore\Backynet.AspNetCore.csproj" />
-      <ProjectReference Include="..\Backynet\Backynet.csproj" />
+        <ProjectReference Include="..\Backynet.AspNetCore\Backynet.AspNetCore.csproj"/>
+        <ProjectReference Include="..\Backynet\Backynet.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Npgsql" Version="8.0.3" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Remove="migration.sql" />
-      <EmbeddedResource Include="migration.sql" />
+        <PackageReference Include="Npgsql" Version="8.0.3"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -31,5 +26,10 @@
             <_Parameter1>Backynet.Tests</_Parameter1>
         </AssemblyAttribute>
     </ItemGroup>
-    
+
+    <ItemGroup>
+        <None Remove="1_Initial_Migration.sql"/>
+        <EmbeddedResource Include="1_Initial_Migration.sql"/>
+    </ItemGroup>
+
 </Project>

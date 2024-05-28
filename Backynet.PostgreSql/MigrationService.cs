@@ -23,18 +23,18 @@ internal sealed class MigrationService
     {
         // 1_Name_Migration.sql
 
-        var scripts = EmbeddedResource
+        var resourceNames = EmbeddedResource
             .Find(x => x.EndsWith("_Migration.sql", StringComparison.InvariantCulture), MigrationAssembly)
             .ToArray();
 
-        var entries = new List<Entry>(scripts.Length);
+        var entries = new List<Entry>(resourceNames.Length);
 
-        foreach (var script in scripts)
+        foreach (var resourceName in resourceNames)
         {
-            var byDot = script.Split('.');
-            var byName = byDot[^2].Split('_');
+            var resourceNameParts = resourceName.Split('.');
+            var migrationNameParts = resourceNameParts[^2].Split('_');
 
-            entries.Add(new Entry(int.Parse(byName[0]), script));
+            entries.Add(new Entry(int.Parse(migrationNameParts[0]), resourceName));
         }
 
         var output = entries
