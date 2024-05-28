@@ -1,4 +1,5 @@
 using System.Reflection;
+using Npgsql;
 
 namespace Backynet.PostgreSql;
 
@@ -16,10 +17,46 @@ internal sealed class MigrationService
     public async Task Perform(CancellationToken cancellationToken)
     {
         var scripts = GetAllMigrationScripts();
-        await Execute(scripts, cancellationToken);
+        var migrations = await GetAppliedMigrations();
+
+        var toApply = scripts
+            .Where(x => migrations.Contains(x.MigrationName) is false)
+            .OrderBy(x => x.Order)
+            .Select(x => x.ResourceName)
+            .ToArray();
+
+        await Execute(toApply, cancellationToken);
     }
 
-    public IEnumerable<string> GetAllMigrationScripts()
+    private async Task<IEnumerable<string>> GetAppliedMigrations()
+    {
+        try
+        {
+            var output = new List<string>();
+
+            await using var conn = await _connectionFactory.GetAsync();
+            await using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT name FROM migrations";
+
+            await conn.OpenAsync();
+            await using var reader = await cmd.ExecuteReaderAsync();
+
+            while (reader.Read())
+            {
+                var name = reader.GetString(0);
+
+                output.Add(name);
+            }
+
+            return output;
+        }
+        catch (PostgresException e) when (e.SqlState == PostgresErrorCodes.UndefinedTable)
+        {
+            return new List<string>();
+        }
+    }
+
+    private IEnumerable<Entry> GetAllMigrationScripts()
     {
         // 1_Name_Migration.sql
 
@@ -34,38 +71,40 @@ internal sealed class MigrationService
             var resourceNameParts = resourceName.Split('.');
             var migrationNameParts = resourceNameParts[^2].Split('_');
 
-            entries.Add(new Entry(int.Parse(migrationNameParts[0]), resourceName));
+            var order = int.Parse(migrationNameParts[0]);
+            var migrationName = $"{resourceNameParts[^2]}.{resourceNameParts[^1]}";
+
+            entries.Add(new Entry(order, resourceName, migrationName));
         }
 
-        var output = entries
-            .OrderBy(x => x.Order)
-            .Select(x => x.ResourceName)
-            .ToArray();
-
-        return output;
+        return entries;
     }
 
     private readonly struct Entry
     {
         public int Order { get; }
         public string ResourceName { get; }
+        public string MigrationName { get; }
 
-        public Entry(int order, string resourceName)
+        public Entry(int order, string resourceName, string migrationName)
         {
             Order = order;
             ResourceName = resourceName;
+            MigrationName = migrationName;
         }
     }
 
-    private async Task Execute(IEnumerable<string> scripts, CancellationToken cancellationToken)
+    private async Task Execute(IEnumerable<string> resourceNames, CancellationToken cancellationToken)
     {
         await using var connection = await _connectionFactory.GetAsync(cancellationToken);
+        await connection.OpenAsync(cancellationToken);
+
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
 
-        foreach (var script in scripts)
+        foreach (var resourceName in resourceNames)
         {
             await using var command = connection.CreateCommand();
-            command.CommandText = script;
+            command.CommandText = EmbeddedResource.Read(resourceName);
             command.Transaction = transaction;
             await command.ExecuteNonQueryAsync(cancellationToken);
         }

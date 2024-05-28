@@ -1,4 +1,6 @@
-﻿namespace Backynet.PostgreSql.Tests;
+﻿using Backynet.Tests;
+
+namespace Backynet.PostgreSql.Tests;
 
 public class MigrationServiceTests
 {
@@ -6,12 +8,13 @@ public class MigrationServiceTests
 
     public MigrationServiceTests()
     {
-        _migrationService = new MigrationService(null);
+        var c = new NpgsqlConnectionFactory(TestContext.ConnectionString);
+        _migrationService = new MigrationService(c);
     }
     
     [Fact]
-    public void Do()
+    public async Task Do()
     {
-        var s = _migrationService.GetAllMigrationScripts().ToArray();
+        await _migrationService.Perform(default);
     }
 }

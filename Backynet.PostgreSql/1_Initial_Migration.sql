@@ -1,3 +1,11 @@
+create table migrations
+(
+    name       varchar not null
+        constraint migrations_pk
+            primary key,
+    applied_at timestamp with time zone
+);
+
 create table jobs
 (
     id                 uuid                     not null
@@ -31,3 +39,6 @@ create table servers
     heartbeat_on timestamp with time zone,
     created_at   timestamp with time zone
 );
+
+insert into migrations (name, applied_at)
+values ('1_Initial_Migration.sql', now());
