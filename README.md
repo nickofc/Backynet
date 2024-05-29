@@ -2,15 +2,13 @@
 
 [![latest version](https://img.shields.io/nuget/v/Backynet)](https://www.nuget.org/packages/Backynet) [![preview version](https://img.shields.io/nuget/vpre/Backynet)](https://www.nuget.org/packages/Backynet/absoluteLatest) [![downloads](https://img.shields.io/nuget/dt/Backynet)](https://www.nuget.org/packages/Backynet) [![100 - commitow](https://img.shields.io/badge/100%20-commitow-lightgreen.svg)](https://100commitow.pl)
 
+Backynet is a library designed for performing background tasks such as sending emails or processing large files. It focuses on high performance, is built around the .NET ecosystem, and utilizes all its latest features.
 
-// todo - nuget
-
-// todo - description
+Every task added to the queue is guaranteed "at least once delivery", so you don't have to worry about data loss. The library's architecture allows for easy addition of new nodes by specifying the same connection string. Because jobs are serialized, they can be executed on any of the available nodes.
 
 # Installation
 
-Backynet is available on NuGet. Install the provider package corresponding to your target database or message broker.  
-See the list of providers in the docs for additional databases.
+Backynet is available on NuGet. Install the provider package corresponding to your target database or message broker (In development, only PostgreSql is supported).
 
 ```bash
 dotnet add package Backynet.PostgreSql
@@ -49,10 +47,6 @@ Check out more [examples](https://github.com/nickofc/backynet/tree/master/exampl
 
 # Benchmarks
 
-WorkerCount = 40
-
-// todo: opis
-
 ```
 BenchmarkDotNet v0.13.12, Windows 10 (10.0.19044.4412/21H2/November2021Update)
 Intel Core i9-10900K CPU 3.70GHz, 1 CPU, 20 logical and 10 physical cores
@@ -60,7 +54,7 @@ Intel Core i9-10900K CPU 3.70GHz, 1 CPU, 20 logical and 10 physical cores
   [Host]     : .NET 8.0.3 (8.0.324.11423), X64 RyuJIT AVX2
   Job-HUDYGN : .NET 8.0.3 (8.0.324.11423), X64 RyuJIT AVX2
 
-InvocationCount=1  UnrollFactor=1  
+InvocationCount=1  UnrollFactor=1  WorkerCount=40  
 ```
 | Type              | Method       | N   | Mean     | Error    | StdDev   | Allocated  |
 |------------------ |------------- |---- |---------:|---------:|---------:|-----------:|
@@ -74,7 +68,7 @@ Intel Core i9-10900K CPU 3.70GHz, 1 CPU, 20 logical and 10 physical cores
   [Host]     : .NET 8.0.3 (8.0.324.11423), X64 RyuJIT AVX2
   Job-PDYXJX : .NET 8.0.3 (8.0.324.11423), X64 RyuJIT AVX2
 
-InvocationCount=1  UnrollFactor=1  
+InvocationCount=1  UnrollFactor=1  WorkerCount=40
 ```
 | Type                    | Method  | N   | Mean     | Error    | StdDev   | Median   | Gen0      | Gen1      | Allocated |
 |------------------------ |-------- |---- |---------:|---------:|---------:|---------:|----------:|----------:|----------:|
