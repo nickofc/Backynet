@@ -68,8 +68,8 @@ internal class PostgreSqlJobRepository : IJobRepository
         await using var connection = _npgsqlConnectionFactory.Get();
         await using var command = connection.CreateCommand();
         command.CommandText = """
-                              insert into jobs (id, state, created_at, descriptor, server_name, cron, group_name, row_version, errors, context)
-                              values (@id, @state, @created_at, @descriptor, @server_name, @cron, @group_name, @row_version, @errors, @context);
+                              insert into jobs (id, state, created_at, descriptor, server_name, cron, group_name, next_occurrence_at, row_version, errors, context)
+                              values (@id, @state, @created_at, @descriptor, @server_name, @cron, @group_name, @next_occurrence_at, @row_version, @errors, @context);
                               """;
 
         command.Parameters.Add(new NpgsqlParameter<Guid>("id", job.Id));
