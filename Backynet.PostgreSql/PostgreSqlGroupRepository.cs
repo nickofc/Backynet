@@ -14,8 +14,8 @@ internal sealed class PostgreSqlGroupRepository : IGroupRepository
 
     public async Task Add(Group group, CancellationToken cancellationToken = default)
     {
-        await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
-        await using var command = new NpgsqlCommand();
+        await using var connection = _npgsqlConnectionFactory.Get();
+        await using var command = connection.CreateCommand();
         command.Connection = connection;
         command.CommandText = """
                               insert into groups (group_name, max_concurrent_threads)
@@ -34,8 +34,8 @@ internal sealed class PostgreSqlGroupRepository : IGroupRepository
 
     public async Task Update(string groupName, Group group, CancellationToken cancellationToken = default)
     {
-        await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
-        await using var command = new NpgsqlCommand();
+        await using var connection = _npgsqlConnectionFactory.Get();
+        await using var command = connection.CreateCommand();
         command.Connection = connection;
         command.CommandText = """
                               update groups 

@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using Backynet.Abstraction;
 using Npgsql;
 
@@ -31,7 +30,7 @@ internal class PostgreSqlJobRepository : IJobRepository
 
     public async Task<IReadOnlyCollection<Job>> Acquire(string serverName, int maxJobsCount, CancellationToken cancellationToken = default)
     {
-        await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
+        await using var connection = _npgsqlConnectionFactory.Get();
         await using var command = connection.CreateCommand();
         command.CommandText = """
                               UPDATE jobs
@@ -66,7 +65,7 @@ internal class PostgreSqlJobRepository : IJobRepository
 
     public async Task Add(Job job, CancellationToken cancellationToken = default)
     {
-        await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
+        await using var connection = _npgsqlConnectionFactory.Get();
         await using var command = connection.CreateCommand();
         command.CommandText = """
                               insert into jobs (id, state, created_at, descriptor, server_name, cron, group_name, row_version, errors, context)
@@ -91,7 +90,7 @@ internal class PostgreSqlJobRepository : IJobRepository
 
     public async Task<Job?> Get(Guid jobId, CancellationToken cancellationToken = default)
     {
-        await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
+        await using var connection = _npgsqlConnectionFactory.Get();
         await using var command = connection.CreateCommand();
         command.CommandText = """
                               select id, state, created_at, descriptor, server_name, cron, group_name, next_occurrence_at, row_version, errors, context
@@ -105,7 +104,7 @@ internal class PostgreSqlJobRepository : IJobRepository
 
     public async Task<bool> Update(Guid jobId, Job job, CancellationToken cancellationToken = default)
     {
-        await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
+        await using var connection = _npgsqlConnectionFactory.Get();
         await using var command = connection.CreateCommand();
         command.CommandText = """
                               update jobs
@@ -194,36 +193,5 @@ internal class PostgreSqlJobRepository : IJobRepository
             Errors = errors,
             Context = context
         };
-    }
-}
-
-/// https://stackoverflow.com/a/23391746
-/// <summary>
-/// Class to cast to type <see cref="T"/>
-/// </summary>
-/// <typeparam name="T">Target type</typeparam>
-public static class CastTo<T>
-{
-    /// <summary>
-    /// Casts <see cref="S"/> to <see cref="T"/>.
-    /// This does not cause boxing for value types.
-    /// Useful in generic methods.
-    /// </summary>
-    /// <typeparam name="S">Source type to cast from. Usually a generic type.</typeparam>
-    public static T From<S>(S s)
-    {
-        return Cache<S>.caster(s);
-    }
-
-    private static class Cache<S>
-    {
-        public static readonly Func<S, T> caster = Get();
-
-        private static Func<S, T> Get()
-        {
-            var p = Expression.Parameter(typeof(S));
-            var c = Expression.ConvertChecked(p, typeof(T));
-            return Expression.Lambda<Func<S, T>>(c, p).Compile();
-        }
     }
 }

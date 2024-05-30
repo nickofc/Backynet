@@ -15,7 +15,7 @@ internal sealed class ServerService : IServerService
 
     public async Task Heartbeat(string serverName, CancellationToken cancellationToken = default)
     {
-        await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
+        await using var connection = _npgsqlConnectionFactory.Get();
         await using var command = connection.CreateCommand();
         command.CommandText = """
                               INSERT INTO servers (server_name, heartbeat_on, created_at)
@@ -32,7 +32,7 @@ internal sealed class ServerService : IServerService
 
     public async Task Purge(CancellationToken cancellationToken = default)
     {
-        await using var connection = await _npgsqlConnectionFactory.GetAsync(cancellationToken);
+        await using var connection = _npgsqlConnectionFactory.Get();
         await using var command = connection.CreateCommand();
         command.CommandText = """
                               DELETE FROM servers WHERE heartbeat_on < @heartbeat_on;

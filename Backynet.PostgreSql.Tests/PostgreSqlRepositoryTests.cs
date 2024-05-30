@@ -3,13 +3,13 @@ using Backynet.Tests;
 
 namespace Backynet.PostgreSql.Tests;
 
-public class PostgresRepositoryTests : IDisposable, IAsyncDisposable
+public class PostgreSqlRepositoryTests : IDisposable, IAsyncDisposable
 {
     private readonly string _serverName;
     private readonly PostgreSqlJobRepository _repository;
     private readonly Task _serverServiceTask;
 
-    public PostgresRepositoryTests()
+    public PostgreSqlRepositoryTests()
     {
         var factory = new NpgsqlConnectionFactory(TestContext.ConnectionString);
         var serverService = new ServerService(factory, new ServerServiceOptions { MaxTimeWithoutHeartbeat = TimeSpan.FromSeconds(30) });
@@ -128,7 +128,7 @@ public class PostgresRepositoryTests : IDisposable, IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         var factory = new NpgsqlConnectionFactory(TestContext.ConnectionString);
-        await using var connection = await factory.GetAsync();
+        await using var connection = factory.Get();
         await DatabaseExtensions.DeleteAllJobs(connection);
         _serverServiceTask.Dispose();
     }

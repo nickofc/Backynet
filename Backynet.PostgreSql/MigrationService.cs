@@ -34,7 +34,7 @@ internal sealed class MigrationService
         {
             var output = new List<string>();
 
-            await using var conn = await _connectionFactory.GetAsync();
+            await using var conn = _connectionFactory.Get();
             await using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT name FROM migrations";
 
@@ -52,7 +52,7 @@ internal sealed class MigrationService
         }
         catch (PostgresException e) when (e.SqlState == PostgresErrorCodes.UndefinedTable)
         {
-            return new List<string>();
+            return Array.Empty<string>();
         }
     }
 
@@ -96,7 +96,7 @@ internal sealed class MigrationService
 
     private async Task Execute(IEnumerable<string> resourceNames, CancellationToken cancellationToken)
     {
-        await using var connection = await _connectionFactory.GetAsync(cancellationToken);
+        await using var connection = _connectionFactory.Get();
         await connection.OpenAsync(cancellationToken);
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken);

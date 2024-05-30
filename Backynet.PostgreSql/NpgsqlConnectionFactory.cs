@@ -11,8 +11,8 @@ internal sealed class NpgsqlConnectionFactory
         _connectionString = connectionString;
     }
 
-    public Task<NpgsqlConnection> GetAsync(CancellationToken cancellationToken = default)
+    public NpgsqlConnection Get()
     {
-        return Task.FromResult(new NpgsqlConnection(_connectionString));
+        return new NpgsqlConnection(_connectionString);
     }
 }
