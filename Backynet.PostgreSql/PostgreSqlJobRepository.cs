@@ -176,7 +176,7 @@ internal class PostgreSqlJobRepository : IJobRepository
 
         var rowVersion = reader.GetInt32(8);
 
-        var errors = _serializer.Deserialize<List<Exception>>(reader.GetFieldValue<byte[]>(9));
+        var errors = _serializer.Deserialize<List<string>>(reader.GetFieldValue<byte[]>(9));
         var context = _serializer.Deserialize<Dictionary<string, string>>(reader.GetFieldValue<byte[]>(10));
 
         return new Job

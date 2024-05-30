@@ -70,6 +70,8 @@ public class JobExecutor : IJobExecutor
             if (retryCount >= maxRetryCount)
             {
                 job.JobState = JobState.Failed;
+                job.NextOccurrenceAt = null;
+                job.ServerName = null;
                 changed = true;
             }
             else
@@ -78,13 +80,15 @@ public class JobExecutor : IJobExecutor
                 {
                     await _jobDescriptorExecutor.Execute(job.Descriptor, cancellationToken);
                     job.JobState = JobState.Succeeded;
+                    job.NextOccurrenceAt = null;
+                    job.ServerName = null;
                 }
                 catch (JobDescriptorExecutorException exception)
                 {
-                    job.Errors.Add(exception);
+                    job.Errors.Add(exception.ToString());
                     job.Context["retry-count"] = $"{retryCount + 1}";
                     job.JobState = JobState.Scheduled;
-                    job.NextOccurrenceAt = _systemClock.UtcNow.AddSeconds(1);
+                    job.NextOccurrenceAt = _systemClock.UtcNow;
                     job.ServerName = null;
                 }
 
