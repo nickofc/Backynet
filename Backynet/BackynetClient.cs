@@ -12,42 +12,35 @@ internal sealed class BackynetClient : IBackynetClient
         _jobRepository = jobRepository;
     }
 
-    public Task<string> EnqueueAsync(Expression<Func<Task>> expression, CancellationToken cancellationToken = default)
+    public async Task<string> EnqueueAsync(
+        Expression expression,
+        string? groupName = null,
+        DateTimeOffset? when = null,
+        string? cron = null,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(expression);
 
-        return EnqueueCoreAsync(expression, null, cancellationToken);
-    }
-
-    public Task<string> EnqueueAsync(Expression<Action> expression, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(expression);
-
-        return EnqueueCoreAsync(expression, null, cancellationToken);
-    }
-
-    public Task<string> EnqueueAsync(Expression<Func<Task>> expression, string groupName, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(expression);
-        ArgumentNullException.ThrowIfNull(groupName);
-
-        return EnqueueCoreAsync(expression, groupName, cancellationToken);
-    }
-
-    public Task<string> EnqueueAsync(Expression<Action> expression, string groupName, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(expression);
-        ArgumentNullException.ThrowIfNull(groupName);
-
-        return EnqueueCoreAsync(expression, groupName, cancellationToken);
-    }
-
-    private async Task<string> EnqueueCoreAsync(Expression expression, string? groupName = null, CancellationToken cancellationToken = default)
-    {
         var jobDescriptor = JobDescriptorFactory.Create(expression);
         var job = JobFactory.Create(jobDescriptor);
-        job.GroupName = groupName;
+
+        if (groupName != null)
+        {
+            job.GroupName = groupName;
+        }
+
+        if (when != null)
+        {
+            job.NextOccurrenceAt = when;
+        }
+
+        if (cron != null)
+        {
+            job.Cron = cron;
+        }
+
         await _jobRepository.Add(job, cancellationToken);
+
         return job.Id.ToString();
     }
 }
