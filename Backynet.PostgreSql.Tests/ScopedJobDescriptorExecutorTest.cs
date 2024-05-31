@@ -8,7 +8,7 @@ namespace Backynet.PostgreSql.Tests;
 public class ScopedJobDescriptorExecutorTest
 {
     [Fact]
-    public async Task METHOD()
+    public async Task Should_Execute_Job_From_Container()
     {
         var services = new ServiceCollection();
         services.AddScoped<Example>();
