@@ -7,25 +7,29 @@ namespace Backynet.PostgreSql.Tests;
 [TestSubject(typeof(ScopedJobDescriptorExecutor))]
 public class ScopedJobDescriptorExecutorTest
 {
-    [Fact]
-    public async Task Should_Execute_Job_From_Container()
+    private static readonly ManualResetEventSlim ExecutedEvent = new();
+
+    [Fact(Timeout = 1000)]
+    public async Task Should_Execute_Job_From_ServiceProvider()
     {
-        var services = new ServiceCollection();
-        services.AddScoped<Example>();
+        var serviceProvider = new ServiceCollection()
+            .AddScoped<Worker>()
+            .BuildServiceProvider();
 
-        var serviceProvider = services.BuildServiceProvider();
+        var worker = serviceProvider.GetRequiredService<Worker>();
+        var jobDescriptor = JobDescriptorFactory.Create(() => worker.Execute());
+
         var jobDescriptorExecutor = new ScopedJobDescriptorExecutor(serviceProvider);
-
-        var requiredService = serviceProvider.GetRequiredService<Example>();
-        var jobDescriptor = JobDescriptorFactory.Create(() => requiredService.DoWork());
-
         await jobDescriptorExecutor.Execute(jobDescriptor);
+
+        ExecutedEvent.Wait();
     }
 
-    public class Example
+    private class Worker
     {
-        public void DoWork()
+        public void Execute()
         {
+            ExecutedEvent.Set();
         }
     }
 }

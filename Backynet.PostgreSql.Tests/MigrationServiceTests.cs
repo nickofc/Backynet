@@ -2,19 +2,20 @@
 
 namespace Backynet.PostgreSql.Tests;
 
-public class MigrationServiceTests
+public class MigrationServiceTests : IClassFixture<DatabaseFixture>
 {
-    private MigrationService _migrationService;
+    private readonly DatabaseFixture _databaseFixture;
 
-    public MigrationServiceTests()
+    public MigrationServiceTests(DatabaseFixture databaseFixture)
     {
-        var c = new NpgsqlConnectionFactory(TestContext.ConnectionString);
-        _migrationService = new MigrationService(c);
+        _databaseFixture = databaseFixture;
     }
-    
+
     [Fact]
-    public async Task Do()
+    public async Task Should_Migrate()
     {
-        await _migrationService.Perform(default);
+        var npgsqlConnectionFactory = new NpgsqlConnectionFactory(_databaseFixture.ConnectionString);
+        var migrationService = new MigrationService(npgsqlConnectionFactory);
+        await migrationService.Perform();
     }
 }

@@ -14,7 +14,7 @@ internal sealed class MigrationService
         _connectionFactory = connectionFactory;
     }
 
-    public async Task Perform(CancellationToken cancellationToken)
+    public async Task Perform(CancellationToken cancellationToken = default)
     {
         var scripts = GetAllMigrationScripts();
         var migrations = await GetAppliedMigrations();

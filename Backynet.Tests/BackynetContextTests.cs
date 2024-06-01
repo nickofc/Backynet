@@ -5,7 +5,7 @@ namespace Backynet.Tests;
 public class BackynetContextTests
 {
     [Fact]
-    public void Do()
+    public void Should_Create_BackynetContext()
     {
         var backynetContextOptionsBuilder = new BackynetContextOptionsBuilder(); 
         backynetContextOptionsBuilder.UsePostgreSql(TestContext.ConnectionString);
