@@ -1,8 +1,22 @@
+using Microsoft.Extensions.Configuration;
+
 namespace Backynet.Tests;
 
-public static class TestContext
+// TODO: replace with testcontainers
+public sealed class TestContext
 {
-    // todo: dodać testcontainers
-    public static string ConnectionString { get; } = Environment.GetEnvironmentVariable("BACKYNET_CONNECTION_STRING") ??
-                                                     throw new InvalidOperationException("Unable to load connection string.");
+    private static readonly IConfigurationRoot Instance = 
+        new Lazy<IConfigurationRoot>(BuildConfiguration).Value;
+
+    private static IConfigurationRoot BuildConfiguration()
+    {
+        var configurationRoot = new ConfigurationBuilder()
+            .AddUserSecrets<TestContext>()
+            .Build();
+
+        return configurationRoot;
+    }
+
+    public static string ConnectionString => Instance.GetConnectionString("PostgreSql") 
+                                             ?? throw new InvalidOperationException("Unable to load connection string.");
 }
