@@ -6,13 +6,15 @@ namespace Backynet;
 internal sealed class BackynetClient : IBackynetClient
 {
     private readonly IJobRepository _jobRepository;
+    private readonly ITransactionScopeFactory _transactionScopeFactory;
 
-    public BackynetClient(IJobRepository jobRepository)
+    public BackynetClient(IJobRepository jobRepository, ITransactionScopeFactory transactionScopeFactory)
     {
         _jobRepository = jobRepository;
+        _transactionScopeFactory = transactionScopeFactory;
     }
 
-    public async Task<string> EnqueueAsync(
+    public async Task<Guid> EnqueueAsync(
         Expression expression,
         string? groupName = null,
         DateTimeOffset? when = null,
@@ -41,6 +43,25 @@ internal sealed class BackynetClient : IBackynetClient
 
         await _jobRepository.Add(job, cancellationToken);
 
-        return job.Id.ToString();
+        return job.Id;
+    }
+
+    public async Task<bool> CancelAsync(Guid jobId, CancellationToken cancellationToken = default)
+    {
+        await using var transactionScope = _transactionScopeFactory.BeginAsync();
+        var job = await _jobRepository.Get(jobId, cancellationToken);
+
+        if (job == null)
+        {
+            return false;
+        }
+
+        job.JobState = JobState.Canceled;
+        job.ServerName = null;
+
+        await _jobRepository.Update(jobId, job, cancellationToken);
+        await transactionScope.CommitAsync();
+
+        return true;
     }
 }
