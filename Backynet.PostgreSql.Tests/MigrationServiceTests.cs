@@ -1,6 +1,4 @@
-﻿using Backynet.Tests;
-
-namespace Backynet.PostgreSql.Tests;
+﻿namespace Backynet.PostgreSql.Tests;
 
 public class MigrationServiceTests : IClassFixture<DatabaseFixture>
 {
@@ -11,7 +9,7 @@ public class MigrationServiceTests : IClassFixture<DatabaseFixture>
         _databaseFixture = databaseFixture;
     }
 
-    [Fact]
+    [Fact] // todo: add test for build schema from zero
     public async Task Should_Migrate()
     {
         var npgsqlConnectionFactory = new NpgsqlConnectionFactory(_databaseFixture.ConnectionString);

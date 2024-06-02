@@ -5,7 +5,7 @@ namespace Backynet.Tests;
 // TODO: replace with testcontainers
 public sealed class TestContext
 {
-    private static readonly IConfigurationRoot Instance = 
+    private static readonly IConfigurationRoot Instance =
         new Lazy<IConfigurationRoot>(BuildConfiguration).Value;
 
     private static IConfigurationRoot BuildConfiguration()
@@ -17,6 +17,6 @@ public sealed class TestContext
         return configurationRoot;
     }
 
-    public static string ConnectionString => Instance.GetConnectionString("PostgreSql") 
-                                             ?? throw new InvalidOperationException("Unable to load connection string.");
+    public static string ConnectionString { get; } = Instance.GetConnectionString("PostgreSql")
+                                                     ?? throw new InvalidOperationException("Unable to load connection string.");
 }

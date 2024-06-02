@@ -104,8 +104,8 @@ public class ThreadPoolTest
         Assert.Equal(Options.MaxThreads, ThreadPool.AvailableThreadCount);
     }
 
-    [Fact] // todo: rename
-    public async Task Should_Return_Immediate_When_Thread_Is_Available2()
+    [Fact]
+    public async Task Should_Release_Task_From_Pool_When_Any_Task_Was_Completed()
     {
         for (var i = 0; i < Options.MaxThreads - 1; i++)
         {

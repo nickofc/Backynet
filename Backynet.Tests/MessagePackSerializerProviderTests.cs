@@ -2,9 +2,9 @@
 
 namespace Backynet.Tests;
 
-public class SerializerTests
+public class MessagePackSerializerProviderTests
 {
-    private readonly ISerializer _serializer = new MessagePackSerializerProvider();
+    private readonly MessagePackSerializerProvider _serializer = new();
 
     [Fact]
     public void Should_Serialize_With_Valid_Types()
