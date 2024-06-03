@@ -66,6 +66,8 @@ internal sealed class BackynetServer : IBackynetServer
 
     private async Task WorkerTask(CancellationToken cancellationToken)
     {
+        var cancellationTokenWatchdog = new CancellationTokenWatchdog();
+
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -98,7 +100,20 @@ internal sealed class BackynetServer : IBackynetServer
 
             foreach (var job in jobs)
             {
-                _ = _threadPool.Post(() => _jobExecutor.Execute(job, cancellationToken), cancellationToken);
+                var jobCancellationToken = cancellationTokenWatchdog.GetCancellationToken(job.Id);
+                var combinedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(jobCancellationToken, cancellationToken);
+
+                _ = _threadPool.Post(() =>
+                {
+                    try
+                    {
+                        return _jobExecutor.Execute(job, combinedCancellationToken.Token);
+                    }
+                    finally
+                    {
+                        combinedCancellationToken.Dispose();
+                    }
+                }, combinedCancellationToken.Token);
             }
 
             await _threadPool.WaitForAvailableThread(cancellationToken);
