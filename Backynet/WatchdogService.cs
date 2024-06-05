@@ -78,3 +78,24 @@ public interface IWatchdogRepository
 {
     Task<Guid[]> Get(Guid[] jobIds, string serverName, CancellationToken cancellationToken);
 }
+
+public class NullTransactionScopeFactory : ITransactionScopeFactory
+{
+    public ITransactionScope BeginAsync()
+    {
+        return new NullTransactionScope();
+    }
+}
+
+public class NullTransactionScope : ITransactionScope
+{
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
+    }
+
+    public Task CommitAsync()
+    {
+        return Task.CompletedTask;
+    }
+}

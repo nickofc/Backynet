@@ -52,6 +52,8 @@ public class BackynetServicesBuilder
 
             return new JobDescriptorExecutor();
         });
+        _services.TryAddSingleton<WatchdogService>();
+        _services.TryAddSingleton<ITransactionScopeFactory, NullTransactionScopeFactory>();
 
         return this;
     }
