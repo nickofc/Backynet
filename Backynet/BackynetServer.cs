@@ -11,6 +11,7 @@ internal sealed class BackynetServer : IBackynetServer
     private readonly IThreadPool _threadPool;
     private readonly IBackynetServerOptions _serverOptions;
     private readonly ILogger _logger;
+    private readonly WatchdogService _watchdogService;
 
     public BackynetServer(
         IJobRepository jobRepository,
@@ -18,7 +19,8 @@ internal sealed class BackynetServer : IBackynetServer
         IServerService serverService,
         IThreadPool threadPool,
         IBackynetServerOptions serverOptions,
-        ILogger<BackynetServer> logger)
+        ILogger<BackynetServer> logger, 
+        WatchdogService watchdogService)
     {
         _jobRepository = jobRepository;
         _jobExecutor = jobExecutor;
@@ -26,13 +28,14 @@ internal sealed class BackynetServer : IBackynetServer
         _threadPool = threadPool;
         _serverOptions = serverOptions;
         _logger = logger;
+        _watchdogService = watchdogService;
     }
 
     public Task Start(CancellationToken cancellationToken)
     {
         _logger.WorkerStarting();
 
-        var combinedTasks = Task.WhenAll(HeartbeatTask(cancellationToken), WorkerTask(cancellationToken));
+        var combinedTasks = Task.WhenAll(HeartbeatTask(cancellationToken), WorkerTask(cancellationToken), _watchdogService.Start(cancellationToken));
         return combinedTasks.IsCompleted ? combinedTasks : Task.CompletedTask;
     }
 
@@ -66,8 +69,6 @@ internal sealed class BackynetServer : IBackynetServer
 
     private async Task WorkerTask(CancellationToken cancellationToken)
     {
-        var cancellationTokenWatchdog = new CancellationTokenWatchdog();
-
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -100,17 +101,22 @@ internal sealed class BackynetServer : IBackynetServer
 
             foreach (var job in jobs)
             {
-                var jobCancellationToken = cancellationTokenWatchdog.GetCancellationToken(job.Id);
+                var jobCancellationToken = _watchdogService.Get(job.Id);
                 var combinedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(jobCancellationToken, cancellationToken);
 
-                _ = _threadPool.Post(() =>
+                _ = _threadPool.Post(async () =>
                 {
                     try
                     {
-                        return _jobExecutor.Execute(job, combinedCancellationToken.Token);
+                        await _jobExecutor.Execute(job, combinedCancellationToken.Token);
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.LogError(exception, "Unexpected error occured");
                     }
                     finally
                     {
+                        _watchdogService.Return(job.Id);
                         combinedCancellationToken.Dispose();
                     }
                 }, combinedCancellationToken.Token);
