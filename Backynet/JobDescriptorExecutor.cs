@@ -23,7 +23,16 @@ internal sealed class JobDescriptorExecutor : IJobDescriptorExecutor
 
         try
         {
-            var returnValue = methodInfo.Invoke(null, jobDescriptor.Arguments.Select(x => x.Value).ToArray());
+            var arguments = jobDescriptor.Arguments
+                .Select(x => x.Value)
+                .ToArray(); // todo: reduce gc allocations
+
+            if (cancellationToken.CanBeCanceled)
+            {
+                ReplaceCancellationToken(arguments, cancellationToken);
+            }
+
+            var returnValue = methodInfo.Invoke(null, arguments);
 
             if (returnValue is Task task)
             {
@@ -33,6 +42,18 @@ internal sealed class JobDescriptorExecutor : IJobDescriptorExecutor
         catch (Exception e)
         {
             throw new JobDescriptorExecutorException("Error occured during job code execution.", e);
+        }
+    }
+
+    private static void ReplaceCancellationToken(object?[] arguments, CancellationToken cancellationToken)
+    {
+        for (var i = 0; i < arguments.Length; i++)
+        {
+            if (arguments[i] is CancellationToken)
+            {
+                arguments[i] = cancellationToken;
+                return;
+            }
         }
     }
 }
