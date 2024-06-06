@@ -9,9 +9,9 @@ public class WatchdogService
     private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _executingJobs;
     private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _cancellationPendingJobs;
     private readonly IWatchdogRepository _watchdogRepository;
-    private readonly WatchdogOptions _options;
+    private readonly IWatchdogOptions _options;
 
-    public WatchdogService(IWatchdogRepository watchdogRepository, WatchdogOptions options)
+    public WatchdogService(IWatchdogRepository watchdogRepository, IWatchdogOptions options)
     {
         _watchdogRepository = watchdogRepository;
         _options = options;
@@ -70,32 +70,5 @@ public class WatchdogService
     {
         _executingJobs.TryRemove(jobId, out _);
         _cancellationPendingJobs.TryRemove(jobId, out _);
-    }
-}
-
-// todo: rename
-public interface IWatchdogRepository
-{
-    Task<Guid[]> Get(Guid[] jobIds, string serverName, CancellationToken cancellationToken);
-}
-
-public class NullTransactionScopeFactory : ITransactionScopeFactory
-{
-    public ITransactionScope BeginAsync()
-    {
-        return new NullTransactionScope();
-    }
-}
-
-public class NullTransactionScope : ITransactionScope
-{
-    public ValueTask DisposeAsync()
-    {
-        return ValueTask.CompletedTask;
-    }
-
-    public Task CommitAsync()
-    {
-        return Task.CompletedTask;
     }
 }

@@ -29,7 +29,7 @@ public class PostgreSqlOptionsExtension : IBackynetContextOptionsExtension
         services.TryAddSingleton<IJobRepository, PostgreSqlJobRepository>();
         services.TryAddSingleton<IServerServiceOptions, ServerServiceOptions>();
         services.TryAddSingleton<IServerService, ServerService>();
-        services.TryAddSingleton<WatchdogOptions>();
+        services.TryAddSingleton<IWatchdogOptions, WatchdogOptions>();
         services.TryAddSingleton<IWatchdogRepository, WatchdogRepository>();
     }
 

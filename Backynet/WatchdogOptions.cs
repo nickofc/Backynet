@@ -1,7 +1,21 @@
+using Backynet.Options;
+
 namespace Backynet;
 
-public class WatchdogOptions
+public class WatchdogOptions : IWatchdogOptions
 {
-    public TimeSpan PoolingInterval { get; set; } = TimeSpan.FromSeconds(1);
-    public string ServerName { get; set; }
+    public TimeSpan PoolingInterval { get; init; }
+    public string ServerName { get; init; } = null!;
+
+    public WatchdogOptions()
+    {
+    }
+
+    public WatchdogOptions(IBackynetContextOptions backynetContextOptions)
+    {
+        var coreOptionsExtension = backynetContextOptions.FindExtension<CoreOptionsExtension>() ?? new CoreOptionsExtension();
+
+        PoolingInterval = TimeSpan.FromSeconds(1); // todo: replace
+        ServerName = coreOptionsExtension.ServerName;
+    }
 }

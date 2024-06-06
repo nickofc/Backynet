@@ -1,6 +1,6 @@
 namespace Backynet.PostgreSql;
 
-public class WatchdogRepository : IWatchdogRepository
+internal sealed class WatchdogRepository : IWatchdogRepository
 {
     public async Task<Guid[]> Get(Guid[] jobIds, string serverName, CancellationToken cancellationToken)
     {
