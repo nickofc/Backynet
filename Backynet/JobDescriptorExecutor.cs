@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using Backynet.Abstraction;
 
@@ -25,14 +26,17 @@ internal sealed class JobDescriptorExecutor : IJobDescriptorExecutor
         {
             var arguments = jobDescriptor.Arguments
                 .Select(x => x.Value)
-                .ToArray(); // todo: reduce gc allocations
-
-            if (cancellationToken.CanBeCanceled)
+                .ToList(); // todo: reduce gc allocations
+            
+            var expectedParameters = methodInfo.GetParameters();
+            
+            if (expectedParameters.Length > 0  && 
+                expectedParameters[^1].ParameterType == typeof(CancellationToken))
             {
-                ReplaceCancellationToken(arguments, cancellationToken);
+                arguments.Add(cancellationToken);
             }
 
-            var returnValue = methodInfo.Invoke(null, arguments);
+            var returnValue = methodInfo.Invoke(null, arguments.ToArray());
 
             if (returnValue is Task task)
             {

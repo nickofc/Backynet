@@ -30,7 +30,24 @@ public static class JobDescriptorFactory
         var method = GetMethod(methodCallExpression.Method);
         var arguments = GetArguments(methodCallExpression);
 
+        arguments = DeleteCancellationToken(arguments);
+
         return new JobDescriptor(method, arguments);
+    }
+
+    private static IArgument[] DeleteCancellationToken(IArgument[] arguments)
+    {
+        var output = new List<IArgument>(arguments.Length);
+
+        for (var i = 0; i < arguments.Length; i++)
+        {
+            if (arguments[i].Value is not CancellationToken)
+            {
+                output.Add(arguments[i]);
+            }
+        }
+
+        return output.ToArray();
     }
 
     private static IMethod GetMethod(MemberInfo methodInfo)
@@ -78,7 +95,7 @@ public static class JobDescriptorFactory
         {
             return constantExpression.Value;
         }
-        
+
         if (expression is MemberInitExpression memberInitExpression)
         {
             var d = memberInitExpression.Bindings[0];

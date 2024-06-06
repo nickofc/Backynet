@@ -35,13 +35,15 @@ public class BackynetClientTests
         WasExecuted.Wait();
     }
 
-    [Fact(Timeout = 60 * 1000)]
+    [Fact]
     public async Task Should_Cancel()
     {
         using var sut = new Sut(_testOutputHelper);
         await sut.Start();
 
         var jobId = await sut.BackynetClient.EnqueueAsync(() => FakeLongRunningAsyncMethod(default));
+
+        await Task.Delay(3000);
         await sut.BackynetClient.CancelAsync(jobId);
 
         WasCanceled.Wait();

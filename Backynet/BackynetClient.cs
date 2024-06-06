@@ -59,7 +59,13 @@ internal sealed class BackynetClient : IBackynetClient
         job.JobState = JobState.Canceled;
         job.ServerName = null;
 
-        await _jobRepository.Update(jobId, job, cancellationToken);
+        var isUpdated = await _jobRepository.Update(jobId, job, cancellationToken);
+        
+        if (isUpdated is false)
+        {
+            throw new InvalidOperationException("Should not happen.");
+        }
+        
         await transactionScope.CommitAsync();
 
         return true;

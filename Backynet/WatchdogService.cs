@@ -25,15 +25,18 @@ public class WatchdogService
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var jobIds = _executingJobs
-                .Select(x => x.Key)
-                .ToArray(); // todo: reduce gc allocations
-
-            jobIds = await _watchdogRepository.Get(jobIds, _options.ServerName, cancellationToken);
-
-            foreach (var jobId in jobIds)
+            if (_executingJobs.IsEmpty is false)
             {
-                _ = StopJob(jobId);
+                var jobIds = _executingJobs
+                    .Select(x => x.Key)
+                    .ToArray(); // todo: reduce gc allocations
+            
+                jobIds = await _watchdogRepository.Get(jobIds, _options.ServerName, cancellationToken);
+
+                foreach (var jobId in jobIds)
+                {
+                    _ = StopJob(jobId);
+                }
             }
 
             await Task.Delay(_options.PoolingInterval, cancellationToken);
