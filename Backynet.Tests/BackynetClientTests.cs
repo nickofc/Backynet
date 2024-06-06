@@ -10,6 +10,7 @@ public class BackynetClientTests
     {
         _testOutputHelper = testOutputHelper;
         WasExecuted.Reset();
+        WasCanceled.Reset();
     }
 
     [Fact(Timeout = 60 * 1000)]
@@ -34,6 +35,18 @@ public class BackynetClientTests
         WasExecuted.Wait();
     }
 
+    [Fact(Timeout = 60 * 1000)]
+    public async Task Should_Cancel()
+    {
+        using var sut = new Sut(_testOutputHelper);
+        await sut.Start();
+
+        var jobId = await sut.BackynetClient.EnqueueAsync(() => FakeLongRunningAsyncMethod(default));
+        await sut.BackynetClient.CancelAsync(jobId);
+
+        WasCanceled.Wait();
+    }
+
     private static readonly ManualResetEventSlim WasExecuted = new();
 
     private static Task FakeAsyncMethod()
@@ -45,5 +58,19 @@ public class BackynetClientTests
     private static void FakeSyncMethod()
     {
         WasExecuted.Set();
+    }
+
+    private static readonly ManualResetEventSlim WasCanceled = new();
+
+    private static async Task FakeLongRunningAsyncMethod(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(-1, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            WasCanceled.Set();
+        }
     }
 }
