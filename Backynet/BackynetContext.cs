@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Backynet.Abstraction;
 using Backynet.Options;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,7 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Backynet;
 
-public class BackynetContext
+public class BackynetContext : IBackynetClient
 {
     private readonly BackynetContextOptions _options;
     private IServiceScope? _serviceScope;
@@ -106,5 +107,15 @@ public class BackynetContext
 
     protected internal virtual void OnConfiguring(BackynetContextOptionsBuilder optionsBuilder)
     {
+    }
+
+    public Task<Guid> EnqueueAsync(Expression expression, string? groupName = null, DateTimeOffset? when = null, string? cron = null, CancellationToken cancellationToken = default)
+    {
+        return Client.EnqueueAsync(expression, groupName, when, cron, cancellationToken);
+    }
+
+    public Task<bool> CancelAsync(Guid jobId, CancellationToken cancellationToken = default)
+    {
+        return Client.CancelAsync(jobId, cancellationToken);
     }
 }
