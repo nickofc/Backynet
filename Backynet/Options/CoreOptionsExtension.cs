@@ -14,6 +14,7 @@ public class CoreOptionsExtension : IBackynetContextOptionsExtension
     private TimeSpan _poolingInterval = TimeSpan.FromSeconds(2);
     private TimeSpan _heartbeatInterval = TimeSpan.FromSeconds(5);
     private TimeSpan _maxTimeWithoutHeartbeat = TimeSpan.FromSeconds(60);
+    private TimeSpan _watchdogPoolingInterval = TimeSpan.FromSeconds(5);
 
     public CoreOptionsExtension()
     {
@@ -116,6 +117,8 @@ public class CoreOptionsExtension : IBackynetContextOptionsExtension
 
         return clone;
     }
+
+    public virtual TimeSpan WatchdogPoolingInterval => _watchdogPoolingInterval;
 
     protected virtual CoreOptionsExtension Clone()
     {

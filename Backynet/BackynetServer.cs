@@ -11,7 +11,7 @@ internal sealed class BackynetServer : IBackynetServer
     private readonly IThreadPool _threadPool;
     private readonly IBackynetServerOptions _serverOptions;
     private readonly ILogger _logger;
-    private readonly WatchdogService _watchdogService;
+    private readonly IWatchdogService _watchdogService;
 
     public BackynetServer(
         IJobRepository jobRepository,
@@ -20,7 +20,7 @@ internal sealed class BackynetServer : IBackynetServer
         IThreadPool threadPool,
         IBackynetServerOptions serverOptions,
         ILogger<BackynetServer> logger, 
-        WatchdogService watchdogService)
+        IWatchdogService watchdogService)
     {
         _jobRepository = jobRepository;
         _jobExecutor = jobExecutor;
@@ -101,7 +101,7 @@ internal sealed class BackynetServer : IBackynetServer
 
             foreach (var job in jobs)
             {
-                var jobCancellationToken = _watchdogService.Get(job.Id);
+                var jobCancellationToken = _watchdogService.Rent(job.Id);
                 var combinedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(jobCancellationToken, cancellationToken);
 
                 _ = _threadPool.Post(async () =>

@@ -15,7 +15,7 @@ public class WatchdogOptions : IWatchdogOptions
     {
         var coreOptionsExtension = backynetContextOptions.FindExtension<CoreOptionsExtension>() ?? new CoreOptionsExtension();
 
-        PoolingInterval = TimeSpan.FromSeconds(1); // todo: replace
+        PoolingInterval = coreOptionsExtension.WatchdogPoolingInterval;
         ServerName = coreOptionsExtension.ServerName;
     }
 }

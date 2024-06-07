@@ -2,9 +2,7 @@ using System.Collections.Concurrent;
 
 namespace Backynet;
 
-// sprawdzenie czy job nie został podebrany przez inny serwer np. w przypadku utraty polaczenia
-// sprawdzewnie czy job nie zostal anulowany
-public class WatchdogService
+public class WatchdogService : IWatchdogService
 {
     private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _executingJobs;
     private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _cancellationPendingJobs;
@@ -30,7 +28,7 @@ public class WatchdogService
                 var jobIds = _executingJobs
                     .Select(x => x.Key)
                     .ToArray(); // todo: reduce gc allocations
-            
+
                 jobIds = await _watchdogRepository.Get(jobIds, _options.ServerName, cancellationToken);
 
                 foreach (var jobId in jobIds)
@@ -62,7 +60,7 @@ public class WatchdogService
         }
     }
 
-    public CancellationToken Get(Guid jobId)
+    public CancellationToken Rent(Guid jobId)
     {
         var cancellationTokenSource = new CancellationTokenSource();
         _executingJobs.TryAdd(jobId, cancellationTokenSource);

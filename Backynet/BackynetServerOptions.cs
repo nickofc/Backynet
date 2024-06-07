@@ -4,7 +4,7 @@ namespace Backynet;
 
 internal sealed class BackynetServerOptions : IBackynetServerOptions
 {
-    public string ServerName { get; init; }
+    public string ServerName { get; init; } = null!;
     public TimeSpan HeartbeatInterval { get; init; }
     public TimeSpan PoolingInterval { get; init; }
 

@@ -44,14 +44,17 @@ internal sealed class ScopedJobDescriptorExecutor : IJobDescriptorExecutor
             {
                 var arguments = jobDescriptor.Arguments
                     .Select(x => x.Value)
-                    .ToArray();
+                    .ToList();
 
-                if (cancellationToken.CanBeCanceled)
+                var expectedParameters = methodInfo.GetParameters();
+
+                if (expectedParameters.Length > 0 &&
+                    expectedParameters[^1].ParameterType == typeof(CancellationToken))
                 {
-                    ReplaceCancellationToken(arguments, cancellationToken);
+                    arguments.Add(cancellationToken);
                 }
 
-                var returnValue = methodInfo.Invoke(instance, arguments);
+                var returnValue = methodInfo.Invoke(instance, arguments.ToArray());
 
                 if (returnValue is Task task)
                 {
@@ -66,18 +69,6 @@ internal sealed class ScopedJobDescriptorExecutor : IJobDescriptorExecutor
         finally
         {
             serviceScope?.Dispose();
-        }
-    }
-
-    private static void ReplaceCancellationToken(object?[] arguments, CancellationToken cancellationToken)
-    {
-        for (var i = 0; i < arguments.Length; i++)
-        {
-            if (arguments[i] is CancellationToken)
-            {
-                arguments[i] = cancellationToken;
-                return;
-            }
         }
     }
 }

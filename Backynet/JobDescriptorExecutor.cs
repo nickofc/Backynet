@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using Backynet.Abstraction;
 
@@ -27,10 +26,10 @@ internal sealed class JobDescriptorExecutor : IJobDescriptorExecutor
             var arguments = jobDescriptor.Arguments
                 .Select(x => x.Value)
                 .ToList(); // todo: reduce gc allocations
-            
+
             var expectedParameters = methodInfo.GetParameters();
-            
-            if (expectedParameters.Length > 0  && 
+
+            if (expectedParameters.Length > 0 &&
                 expectedParameters[^1].ParameterType == typeof(CancellationToken))
             {
                 arguments.Add(cancellationToken);
@@ -46,18 +45,6 @@ internal sealed class JobDescriptorExecutor : IJobDescriptorExecutor
         catch (Exception e)
         {
             throw new JobDescriptorExecutorException("Error occured during job code execution.", e);
-        }
-    }
-
-    private static void ReplaceCancellationToken(object?[] arguments, CancellationToken cancellationToken)
-    {
-        for (var i = 0; i < arguments.Length; i++)
-        {
-            if (arguments[i] is CancellationToken)
-            {
-                arguments[i] = cancellationToken;
-                return;
-            }
         }
     }
 }

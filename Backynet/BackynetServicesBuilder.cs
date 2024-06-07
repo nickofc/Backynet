@@ -38,8 +38,10 @@ public class BackynetServicesBuilder
         _services.TryAddSingleton<IBackynetClient, BackynetClient>();
         _services.TryAddSingleton<IBackynetServer, BackynetServer>();
         _services.TryAddSingleton<IJobExecutor, JobExecutor>();
+
         _services.TryAddSingleton<IThreadPoolOptions, ThreadPoolOptions>();
         _services.TryAddSingleton<IThreadPool, ThreadPool>();
+
         _services.TryAddSingleton<IJobDescriptorExecutor>((sp) =>
         {
             var contextOptions = sp.GetRequiredService<IBackynetContextOptions>();
@@ -52,7 +54,10 @@ public class BackynetServicesBuilder
 
             return new JobDescriptorExecutor();
         });
-        _services.TryAddSingleton<WatchdogService>();
+
+        _services.TryAddSingleton<IWatchdogOptions, WatchdogOptions>();
+        _services.TryAddSingleton<IWatchdogService, WatchdogService>();
+
         _services.TryAddSingleton<ITransactionScopeFactory, NullTransactionScopeFactory>();
 
         return this;
