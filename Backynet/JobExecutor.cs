@@ -11,8 +11,12 @@ public class JobExecutor : IJobExecutor
     private readonly ISystemClock _systemClock;
     private readonly ILogger<JobExecutor> _logger;
 
-    public JobExecutor(IJobDescriptorExecutor jobDescriptorExecutor, IJobRepository jobRepository,
-        ISystemClock systemClock, ILogger<JobExecutor> logger)
+    public JobExecutor(
+        IJobDescriptorExecutor jobDescriptorExecutor,
+        IJobRepository jobRepository,
+        ISystemClock systemClock,
+        ILogger<JobExecutor> logger
+    )
     {
         _jobDescriptorExecutor = jobDescriptorExecutor;
         _jobRepository = jobRepository;
@@ -27,7 +31,7 @@ public class JobExecutor : IJobExecutor
 
     public async Task Execute(Job job, CancellationToken cancellationToken = default)
     {
-        if (ValidStates.Contains(job.JobState))
+        if (!ValidStates.Contains(job.JobState))
         {
             throw new InvalidOperationException("Job is in invalid state.");
         }

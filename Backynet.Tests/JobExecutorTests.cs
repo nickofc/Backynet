@@ -18,6 +18,29 @@ public class JobExecutorTests
             SystemClock.Instance, NullLogger<JobExecutor>.Instance);
     }
 
+    [Theory]
+    [InlineData(JobState.Unknown)]
+    [InlineData(JobState.Created)]
+    [InlineData(JobState.Enqueued)]
+    [InlineData(JobState.Scheduled)]
+    [InlineData(JobState.Processing)]
+    [InlineData(JobState.Failed)]
+    [InlineData(JobState.Succeeded)]
+    [InlineData(JobState.Canceled)]
+    [InlineData(JobState.Deleted)]
+    public async Task Should_Throw_Invalid_Operation_Exception_When_Trying_Execute_Job_In_Invalid_State(JobState jobState)
+    {
+        var jobDescriptor = JobDescriptorFactory.Create(() => FakeMethod());
+        var job = JobFactory.Create(jobDescriptor);
+
+        job.JobState = jobState;
+        
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+        {
+            await _jobExecutor.Execute(job);
+        });
+    }
+    
     [Fact]
     public async Task Should_Cancel()
     {

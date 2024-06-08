@@ -17,9 +17,9 @@ internal sealed class WatchdogRepository : IWatchdogRepository
         await using var connection = _npgsqlConnectionFactory.Get();
         await using var command = connection.CreateCommand();
         command.CommandText = """
-                              select j.id from jobs j where j.id = ANY (@ids) and j.state = @job_state
+                              SELECT id FROM jobs WHERE id = ANY (@job_ids) AND state = @job_state
                               """;
-        command.Parameters.Add(new NpgsqlParameter<Guid[]>("ids", jobIds));
+        command.Parameters.Add(new NpgsqlParameter<Guid[]>("job_ids", jobIds));
         command.Parameters.Add(new NpgsqlParameter<int>("job_state", CastTo<int>.From(JobState.Canceled)));
 
         await connection.OpenAsync(cancellationToken);
