@@ -2,7 +2,7 @@ using Backynet.Abstraction;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Backynet.PostgreSql.Tests;
+namespace Backynet.Tests;
 
 [TestSubject(typeof(ScopedJobDescriptorExecutor))]
 public class ScopedJobDescriptorExecutorTest

@@ -16,7 +16,7 @@ public class BackynetClientTests
     [Fact(Timeout = 60 * 1000)]
     public async Task Should_Execute_Action_Job_When_Job_Was_Enqueued()
     {
-        using var sut = new Sut(_testOutputHelper);
+        await using var sut = new Sut(_testOutputHelper);
         await sut.Start();
 
         await sut.BackynetClient.EnqueueAsync(() => FakeSyncMethod(), CancellationToken.None);
@@ -27,7 +27,7 @@ public class BackynetClientTests
     [Fact(Timeout = 60 * 1000)]
     public async Task Should_Execute_Func_Job_When_Job_Was_Enqueued()
     {
-        using var sut = new Sut(_testOutputHelper);
+        await using var sut = new Sut(_testOutputHelper);
         await sut.Start();
 
         await sut.BackynetClient.EnqueueAsync(() => FakeAsyncMethod(), CancellationToken.None);
@@ -35,10 +35,10 @@ public class BackynetClientTests
         WasExecuted.Wait();
     }
 
-    [Fact]
+    [Fact(Timeout = 60 * 1000)]
     public async Task Should_Cancel()
     {
-        using var sut = new Sut(_testOutputHelper);
+        await using var sut = new Sut(_testOutputHelper);
         await sut.Start();
 
         var jobId = await sut.BackynetClient.EnqueueAsync(() => FakeLongRunningAsyncMethod(default));
@@ -47,6 +47,22 @@ public class BackynetClientTests
         await sut.BackynetClient.CancelAsync(jobId);
 
         WasCanceled.Wait();
+    }
+
+    [Fact(Timeout = 60 * 1000)]
+    public async Task Should_Process_Job_When_One_Backynet_Istance_Stopped_Working_While_Executing_Job()
+    {
+        var sut = new Sut(_testOutputHelper);
+        await sut.Start();
+
+        var jobId = await sut.BackynetClient.EnqueueAsync(() => FakeAsyncMethod());
+
+        await sut.DisposeAsync();
+
+        sut = new Sut(_testOutputHelper);
+        await sut.Start();
+
+        WasExecuted.Wait();
     }
 
     private static readonly ManualResetEventSlim WasExecuted = new();
@@ -74,5 +90,11 @@ public class BackynetClientTests
         {
             WasCanceled.Set();
         }
+    }
+
+    private static void FakeAsyncLong()
+    {
+        Thread.Sleep(20000);
+        WasExecuted.Set();
     }
 }

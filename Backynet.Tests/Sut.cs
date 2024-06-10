@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace Backynet.Tests;
 
-public class Sut : IDisposable
+public class Sut : IAsyncDisposable
 {
     public IBackynetServer BackynetServer { get; private set; }
     public IBackynetClient BackynetClient { get; private set; }
@@ -38,10 +38,12 @@ public class Sut : IDisposable
         await _workerTask;
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-        _cancellationTokenSource.Cancel();
-        _workerTask.Wait();
-        GC.SuppressFinalize(this);
+        await _cancellationTokenSource.CancelAsync();
+        await BackynetServer.WaitForShutdown(CancellationToken.None);
+
+        _cancellationTokenSource.Dispose();
+        _workerTask.Dispose();
     }
 }
