@@ -19,7 +19,7 @@ internal sealed class BackynetServer : IBackynetServer
         IServerService serverService,
         IThreadPool threadPool,
         IBackynetServerOptions serverOptions,
-        ILogger<BackynetServer> logger, 
+        ILogger<BackynetServer> logger,
         IWatchdogService watchdogService)
     {
         _jobRepository = jobRepository;
@@ -31,12 +31,24 @@ internal sealed class BackynetServer : IBackynetServer
         _watchdogService = watchdogService;
     }
 
+    private Task? _combinedTasks;
+
     public Task Start(CancellationToken cancellationToken)
     {
         _logger.WorkerStarting();
 
-        var combinedTasks = Task.WhenAll(HeartbeatTask(cancellationToken), WorkerTask(cancellationToken), _watchdogService.Start(cancellationToken));
-        return combinedTasks.IsCompleted ? combinedTasks : Task.CompletedTask;
+        _combinedTasks = Task.WhenAll(HeartbeatTask(cancellationToken), WorkerTask(cancellationToken), _watchdogService.Start(cancellationToken));
+        return _combinedTasks.IsCompleted ? _combinedTasks : Task.CompletedTask;
+    }
+
+    public async Task WaitForShutdown(CancellationToken cancellationToken)
+    {
+        if (_combinedTasks == null)
+        {
+            return;
+        }
+
+        await Task.WhenAny(_combinedTasks, Task.Delay(-1, cancellationToken));
     }
 
     private async Task HeartbeatTask(CancellationToken cancellationToken)
