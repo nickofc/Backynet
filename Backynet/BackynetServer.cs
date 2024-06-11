@@ -32,12 +32,15 @@ internal sealed class BackynetServer : IBackynetServer
     }
 
     private Task? _combinedTasks;
+    private CancellationToken _shutdownCancellationToken;
 
     public Task Start(CancellationToken cancellationToken)
     {
         _logger.WorkerStarting();
 
         _combinedTasks = Task.WhenAll(HeartbeatTask(cancellationToken), WorkerTask(cancellationToken), _watchdogService.Start(cancellationToken));
+        _shutdownCancellationToken = cancellationToken;
+
         return _combinedTasks.IsCompleted ? _combinedTasks : Task.CompletedTask;
     }
 
