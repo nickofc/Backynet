@@ -34,6 +34,8 @@ internal sealed class BackynetServer : IBackynetServer
     private Task? _combinedTasks;
     private CancellationToken _shutdownCancellationToken;
 
+    public bool IsRunning { get; private set; }
+
     public Task Start(CancellationToken cancellationToken)
     {
         _logger.WorkerStarting();
