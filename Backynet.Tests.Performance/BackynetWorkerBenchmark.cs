@@ -16,11 +16,11 @@ public class BackynetWorkerBenchmark
         Clear.BackynetDatabase();
         _countdownEvent = new CountdownEvent(N);
     }
-    
+
     [Benchmark]
     public async Task Execute()
     {
-        using var sut = new Sut();
+        await using var sut = new Sut();
         await sut.Start();
 
         for (var i = 0; i < N; i++)
