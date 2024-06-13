@@ -139,30 +139,3 @@ public class BackynetClientTests
 
     private static ManualResetEventSlim WasStartedExecuting = new();
 }
-
-public class BackynetClient_Start
-{
-    [Fact]
-    public void Do()
-    {
-    }
-}
-
-public static class Helper
-{
-    public static Action? OnFakeMethodExecuting { get; private set; }
-
-    public static async Task FakeMethod()
-    {
-        OnFakeMethodExecuting?.Invoke();
-        await Task.CompletedTask;
-    }
-
-    public static Action? OnFakeMethodWithCancellationToken { get; private set; }
-
-    public static async Task FakeMethodWithCancellationToken(CancellationToken cancellationToken)
-    {
-        OnFakeMethodWithCancellationToken?.Invoke();
-        await Task.Delay(Timeout.Infinite, cancellationToken);
-    }
-}

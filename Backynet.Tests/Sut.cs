@@ -6,7 +6,12 @@ namespace Backynet.Tests;
 
 public class Sut : IDisposable, IAsyncDisposable
 {
+    public BackynetContext Context { get; private set; }
+
+    [Obsolete]
     public IBackynetServer BackynetServer { get; private set; }
+
+    [Obsolete]
     public IBackynetClient BackynetClient { get; private set; }
 
     public Sut(ITestOutputHelper? testOutputHelper = null)
@@ -23,6 +28,8 @@ public class Sut : IDisposable, IAsyncDisposable
 
         BackynetServer = backynetContext.Server;
         BackynetClient = backynetContext.Client;
+
+        Context = backynetContext;
     }
 
     private CancellationTokenSource? _cancellationTokenSource;

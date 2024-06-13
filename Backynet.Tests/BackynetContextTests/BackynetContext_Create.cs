@@ -1,15 +1,16 @@
 using Backynet.Options;
 
-namespace Backynet.Tests;
+namespace Backynet.Tests.BackynetContextTests;
 
-public class BackynetContextTests
+// ReSharper disable once InconsistentNaming
+public class BackynetContext_Create
 {
     [Fact]
-    public void Should_Create_BackynetContext()
+    public void When_Called_With_Valid_Options_Should_Create_BackynetContext()
     {
-        var backynetContextOptionsBuilder = new BackynetContextOptionsBuilder(); 
-        backynetContextOptionsBuilder.UsePostgreSql(TestContext.ConnectionString);
-        
+        var backynetContextOptionsBuilder = new BackynetContextOptionsBuilder()
+            .UsePostgreSql(TestContext.ConnectionString);
+
         var backynetContext = new AppBackynetContext(backynetContextOptionsBuilder.Options);
 
         Assert.NotNull(backynetContext.Client);
