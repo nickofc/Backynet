@@ -11,6 +11,7 @@ public class BackynetClientTests
         _testOutputHelper = testOutputHelper;
         WasExecuted.Reset();
         WasCanceled.Reset();
+        WasStartedExecuting.Reset();
     }
 
     [Fact(Timeout = 60 * 1000)]
@@ -65,6 +66,37 @@ public class BackynetClientTests
         WasExecuted.Wait();
     }
 
+    [Fact]
+    public async Task Should_Shutdown()
+    {
+        var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromSeconds(30));
+
+        var sut = new Sut(_testOutputHelper);
+        await sut.BackynetServer.Start(cts.Token);
+
+        await sut.BackynetServer.WaitForShutdown();
+
+        Assert.False(sut.BackynetServer.IsRunning);
+    }
+
+    [Fact]
+    public async Task Should_Shutdown_When_Job_Is_Executing()
+    {
+        var cts = new CancellationTokenSource();
+
+        var sut = new Sut(_testOutputHelper);
+        await sut.BackynetServer.Start(cts.Token);
+        await sut.BackynetClient.EnqueueAsync(() => FakeNotEnding());
+
+        WasStartedExecuting.Wait();
+
+        cts.Cancel();
+        await sut.BackynetServer.WaitForShutdown();
+
+        Assert.False(sut.BackynetServer.IsRunning);
+    }
+
     private static readonly ManualResetEventSlim WasExecuted = new();
 
     private static Task FakeAsyncMethod()
@@ -96,5 +128,41 @@ public class BackynetClientTests
     {
         Thread.Sleep(20000);
         WasExecuted.Set();
+    }
+
+    private static async Task FakeNotEnding()
+    {
+        WasStartedExecuting.Set();
+
+        await Task.Delay(Timeout.Infinite, CancellationToken.None).ConfigureAwait(false);
+    }
+
+    private static ManualResetEventSlim WasStartedExecuting = new();
+}
+
+public class BackynetClient_Start
+{
+    [Fact]
+    public void Do()
+    {
+    }
+}
+
+public static class Helper
+{
+    public static Action? OnFakeMethodExecuting { get; private set; }
+
+    public static async Task FakeMethod()
+    {
+        OnFakeMethodExecuting?.Invoke();
+        await Task.CompletedTask;
+    }
+
+    public static Action? OnFakeMethodWithCancellationToken { get; private set; }
+
+    public static async Task FakeMethodWithCancellationToken(CancellationToken cancellationToken)
+    {
+        OnFakeMethodWithCancellationToken?.Invoke();
+        await Task.Delay(Timeout.Infinite, cancellationToken);
     }
 }

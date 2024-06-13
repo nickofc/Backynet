@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace Backynet.Tests;
 
-public class Sut : IAsyncDisposable
+public class Sut : IDisposable, IAsyncDisposable
 {
     public IBackynetServer BackynetServer { get; private set; }
     public IBackynetClient BackynetClient { get; private set; }
@@ -12,8 +12,6 @@ public class Sut : IAsyncDisposable
     public Sut(ITestOutputHelper? testOutputHelper = null)
     {
         var optionsBuilder = new BackynetContextOptionsBuilder()
-            .UseMaxTimeWithoutHeartbeat(TimeSpan.FromSeconds(30))
-            .UseMaxThreads(Environment.ProcessorCount * 2)
             .UsePostgreSql(TestContext.ConnectionString);
 
         if (testOutputHelper != null)
@@ -27,8 +25,8 @@ public class Sut : IAsyncDisposable
         BackynetClient = backynetContext.Client;
     }
 
-    private CancellationTokenSource _cancellationTokenSource;
-    private Task _workerTask;
+    private CancellationTokenSource? _cancellationTokenSource;
+    private Task? _workerTask;
 
     public async Task Start()
     {
@@ -38,12 +36,33 @@ public class Sut : IAsyncDisposable
         await _workerTask;
     }
 
+    public void Dispose()
+    {
+        DisposeAsync().AsTask().GetAwaiter().GetResult();
+    }
+
     public async ValueTask DisposeAsync()
     {
-        await _cancellationTokenSource.CancelAsync();
-        await BackynetServer.WaitForShutdown(CancellationToken.None);
+        await CastAndDispose(_cancellationTokenSource);
+        await CastAndDispose(_workerTask);
 
-        _cancellationTokenSource.Dispose();
-        _workerTask.Dispose();
+        await BackynetServer.WaitForShutdown();
+
+        return;
+
+        static async ValueTask CastAndDispose(IDisposable? resource)
+        {
+            switch (resource)
+            {
+                case null:
+                    return;
+                case IAsyncDisposable resourceAsyncDisposable:
+                    await resourceAsyncDisposable.DisposeAsync();
+                    break;
+                default:
+                    resource.Dispose();
+                    break;
+            }
+        }
     }
 }
