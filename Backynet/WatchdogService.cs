@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 
 namespace Backynet;
 
@@ -8,11 +9,13 @@ public class WatchdogService : IWatchdogService
     private readonly ConcurrentDictionary<Guid, CancellationTokenSource> _cancellationPendingJobs;
     private readonly IWatchdogRepository _watchdogRepository;
     private readonly IWatchdogOptions _options;
+    private readonly ILogger<WatchdogService> _logger;
 
-    public WatchdogService(IWatchdogRepository watchdogRepository, IWatchdogOptions options)
+    public WatchdogService(IWatchdogRepository watchdogRepository, IWatchdogOptions options, ILogger<WatchdogService> logger)
     {
         _watchdogRepository = watchdogRepository;
         _options = options;
+        _logger = logger;
         _executingJobs = new ConcurrentDictionary<Guid, CancellationTokenSource>();
         _cancellationPendingJobs = new ConcurrentDictionary<Guid, CancellationTokenSource>();
     }
@@ -43,6 +46,8 @@ public class WatchdogService : IWatchdogService
 
     private async Task StopJob(Guid jobId)
     {
+        _logger.LogTrace("Requested stop for {JobId}", jobId);
+        
         if (_executingJobs.TryGetValue(jobId, out var cancellationTokenSource))
         {
             _executingJobs.TryRemove(jobId, out _);
@@ -64,6 +69,9 @@ public class WatchdogService : IWatchdogService
     {
         var cancellationTokenSource = new CancellationTokenSource();
         _executingJobs.TryAdd(jobId, cancellationTokenSource);
+
+        _logger.LogTrace("Rented cancellation token for {JobId}", jobId);
+
         return cancellationTokenSource.Token;
     }
 
@@ -71,5 +79,7 @@ public class WatchdogService : IWatchdogService
     {
         _executingJobs.TryRemove(jobId, out _);
         _cancellationPendingJobs.TryRemove(jobId, out _);
+
+        _logger.LogTrace("Returned cancellation token for {JobId}", jobId);
     }
 }

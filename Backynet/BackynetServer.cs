@@ -70,6 +70,8 @@ internal sealed class BackynetServer : IBackynetServer
             }
             catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
             {
+                _logger.LogTrace($"{nameof(HeartbeatTask)} is shutting down");
+
                 throw;
             }
             catch (Exception exception)
@@ -98,6 +100,8 @@ internal sealed class BackynetServer : IBackynetServer
             }
             catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
             {
+                _logger.LogTrace($"{nameof(WorkerTask)} is shutting down");
+
                 throw;
             }
             catch (Exception exception)
@@ -120,6 +124,8 @@ internal sealed class BackynetServer : IBackynetServer
 
             foreach (var job in jobs)
             {
+                _logger.LogTrace("Fetched job with id {JobId}", job.Id);
+                
                 var jobCancellationToken = _watchdogService.Rent(job.Id);
                 var combinedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(jobCancellationToken, cancellationToken);
 
