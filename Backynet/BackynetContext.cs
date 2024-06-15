@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Backynet;
 
-public class BackynetContext : IBackynetClient
+public class BackynetContext : IBackynetClient, IDisposable, IAsyncDisposable
 {
     private readonly BackynetContextOptions _options;
     private IServiceScope? _serviceScope;
@@ -117,5 +117,20 @@ public class BackynetContext : IBackynetClient
     public Task<bool> CancelAsync(Guid jobId, CancellationToken cancellationToken = default)
     {
         return Client.CancelAsync(jobId, cancellationToken);
+    }
+
+    public void Dispose()
+    {
+        _serviceScope?.Dispose();
+        _backynetServer?.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_serviceScope is IAsyncDisposable serviceScopeAsyncDisposable)
+            await serviceScopeAsyncDisposable.DisposeAsync();
+        else if (_serviceScope != null)
+            _serviceScope.Dispose();
+        if (_backynetServer != null) await _backynetServer.DisposeAsync();
     }
 }
