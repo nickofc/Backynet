@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Linq.Expressions;
 using Backynet.Abstraction;
 
@@ -8,7 +9,9 @@ internal sealed class BackynetClient : IBackynetClient
     private readonly IJobRepository _jobRepository;
     private readonly ITransactionScopeFactory _transactionScopeFactory;
 
-    public BackynetClient(IJobRepository jobRepository, ITransactionScopeFactory transactionScopeFactory)
+    public BackynetClient(
+        IJobRepository jobRepository,
+        ITransactionScopeFactory transactionScopeFactory)
     {
         _jobRepository = jobRepository;
         _transactionScopeFactory = transactionScopeFactory;
@@ -59,13 +62,11 @@ internal sealed class BackynetClient : IBackynetClient
         job.JobState = JobState.Canceled;
         job.ServerName = null;
 
-        var isUpdated = await _jobRepository.Update(jobId, job, cancellationToken);
-        
-        if (isUpdated is false)
+        if (await _jobRepository.Update(jobId, job, cancellationToken) is false)
         {
-            throw new InvalidOperationException("Should not happen.");
+            throw new UnreachableException("Unable to update job in transaction scope.");
         }
-        
+
         await transactionScope.CommitAsync();
 
         return true;
