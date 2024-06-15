@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Linq.Expressions;
 using Backynet.Abstraction;
+using Microsoft.Extensions.Logging;
 
 namespace Backynet;
 
@@ -8,13 +9,16 @@ internal sealed class BackynetClient : IBackynetClient
 {
     private readonly IJobRepository _jobRepository;
     private readonly ITransactionScopeFactory _transactionScopeFactory;
+    private readonly ILogger<BackynetClient> _logger;
 
     public BackynetClient(
         IJobRepository jobRepository,
-        ITransactionScopeFactory transactionScopeFactory)
+        ITransactionScopeFactory transactionScopeFactory,
+        ILogger<BackynetClient> logger)
     {
         _jobRepository = jobRepository;
         _transactionScopeFactory = transactionScopeFactory;
+        _logger = logger;
     }
 
     public async Task<Guid> EnqueueAsync(
@@ -46,6 +50,8 @@ internal sealed class BackynetClient : IBackynetClient
 
         await _jobRepository.Add(job, cancellationToken);
 
+        _logger.LogTrace("Job [JobId = {JobId}] was added", job.Id);
+
         return job.Id;
     }
 
@@ -68,6 +74,8 @@ internal sealed class BackynetClient : IBackynetClient
         }
 
         await transactionScope.CommitAsync();
+
+        _logger.LogTrace("Job [JobId = {JobId}] was cancelled", job.Id);
 
         return true;
     }

@@ -32,7 +32,7 @@ internal sealed class BackynetServer : IBackynetServer
     }
 
     private Task? _combinedTasks;
-    private CancellationToken _cancellationToken;
+    private CancellationTokenSource? _cancellationTokenSource;
 
     public bool IsRunning => _combinedTasks is { IsCompleted: false };
 
@@ -40,12 +40,19 @@ internal sealed class BackynetServer : IBackynetServer
     {
         _logger.WorkerStarting();
 
-        _combinedTasks = Task.WhenAll(HeartbeatTask(cancellationToken), WorkerTask(cancellationToken), _watchdogService.Start(cancellationToken));
-        _cancellationToken = cancellationToken;
+        _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _combinedTasks = Task.WhenAll(HeartbeatTask(_cancellationTokenSource.Token),
+            WorkerTask(_cancellationTokenSource.Token), _watchdogService.Start(_cancellationTokenSource.Token));
 
         // todo: czy tutaj zwócić _combinedTasks?
 
         return _combinedTasks.IsCompleted ? _combinedTasks : Task.CompletedTask;
+    }
+
+    public async Task Shutdown(CancellationToken cancellationToken)
+    {
+        await _cancellationTokenSource.CancelAsync();
+        await WaitForShutdown(cancellationToken);
     }
 
     public async Task WaitForShutdown(CancellationToken cancellationToken)
@@ -118,36 +125,71 @@ internal sealed class BackynetServer : IBackynetServer
 
             if (jobs.Count == 0)
             {
+                if (_logger.IsEnabled(LogLevel.Trace))
+                {
+                    _logger.LogTrace("There are no jobs available");
+                }
+
                 await Task.Delay(_serverOptions.PoolingInterval, cancellationToken);
                 return;
             }
 
             foreach (var job in jobs)
             {
-                _logger.LogTrace("Fetched job with id {JobId}", job.Id);
-                
+                _logger.LogTrace("Fetched job [JobId = {JobId}]", job.Id);
+
                 var jobCancellationToken = _watchdogService.Rent(job.Id);
+
+                _logger.LogTrace("Rented cancellation token for job [JobId = {JobId}]", job.Id);
+
                 var combinedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(jobCancellationToken, cancellationToken);
 
                 _ = _threadPool.Post(async () =>
                 {
+                    _logger.LogTrace("Started executing job [JobId = {JobId}]", job.Id);
+
                     try
                     {
                         await _jobExecutor.Execute(job, combinedCancellationToken.Token);
                     }
                     catch (Exception exception)
                     {
-                        _logger.LogError(exception, "Unexpected error occured");
+                        _logger.LogError(exception, "Unexpected error occured for job [JobId = {JobId}]", job.Id);
                     }
                     finally
                     {
                         _watchdogService.Return(job.Id);
+
+                        _logger.LogTrace("Returned cancellation token for job [JobId = {JobId}]", job.Id);
+
                         combinedCancellationToken.Dispose();
                     }
                 }, combinedCancellationToken.Token);
             }
 
             await _threadPool.WaitForAvailableThread(cancellationToken);
+        }
+    }
+
+    public void Dispose()
+    {
+        DisposeAsync().AsTask().GetAwaiter().GetResult();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_cancellationTokenSource != null)
+        {
+            await Shutdown(CancellationToken.None);
+
+            _cancellationTokenSource.Dispose();
+            _cancellationTokenSource = null;
+        }
+
+        if (_combinedTasks != null)
+        {
+            _combinedTasks.Dispose();
+            _combinedTasks = null;
         }
     }
 }

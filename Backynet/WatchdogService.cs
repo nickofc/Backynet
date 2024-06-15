@@ -36,6 +36,11 @@ public class WatchdogService : IWatchdogService
 
                 foreach (var jobId in jobIds)
                 {
+                    if (_logger.IsEnabled(LogLevel.Trace))
+                    {
+                        _logger.LogTrace("Received cancellation for for {JobId}", jobId);
+                    }
+
                     _ = StopJob(jobId);
                 }
             }
@@ -46,8 +51,6 @@ public class WatchdogService : IWatchdogService
 
     private async Task StopJob(Guid jobId)
     {
-        _logger.LogTrace("Requested stop for {JobId}", jobId);
-        
         if (_executingJobs.TryGetValue(jobId, out var cancellationTokenSource))
         {
             _executingJobs.TryRemove(jobId, out _);
@@ -70,8 +73,6 @@ public class WatchdogService : IWatchdogService
         var cancellationTokenSource = new CancellationTokenSource();
         _executingJobs.TryAdd(jobId, cancellationTokenSource);
 
-        _logger.LogTrace("Rented cancellation token for {JobId}", jobId);
-
         return cancellationTokenSource.Token;
     }
 
@@ -79,7 +80,5 @@ public class WatchdogService : IWatchdogService
     {
         _executingJobs.TryRemove(jobId, out _);
         _cancellationPendingJobs.TryRemove(jobId, out _);
-
-        _logger.LogTrace("Returned cancellation token for {JobId}", jobId);
     }
 }

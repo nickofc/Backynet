@@ -10,7 +10,8 @@ public class BackynetContextFactory
     public BackynetContextFactory(ITestOutputHelper? testOutputHelper = null)
     {
         var optionsBuilder = new BackynetContextOptionsBuilder()
-            .UsePostgreSql(TestContext.ConnectionString);
+            .UsePostgreSql(TestContext.ConnectionString)
+            .UseMaxTimeWithoutHeartbeat(TimeSpan.FromSeconds(5));
 
         if (testOutputHelper != null)
         {
