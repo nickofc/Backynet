@@ -17,7 +17,7 @@ public class PostgreSqlRepositoryTests : IDisposable, IAsyncDisposable
 
         _serverName = Guid.NewGuid().ToString();
         _repository = new PostgreSqlJobRepository(factory, serializer, SystemClock.Instance);
-        _serverServiceTask = serverService.Heartbeat(_serverName);
+        _serverServiceTask = serverService.Heartbeat();
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class PostgreSqlRepositoryTests : IDisposable, IAsyncDisposable
         // assert
 
         Assert.True(jobs.Count > 0);
-        Assert.True(jobs.All(x => x.ServerName == _serverName));
+        Assert.True(jobs.All(x => x.InstanceId == _serverName));
     }
 
     [Fact]
@@ -104,10 +104,10 @@ public class PostgreSqlRepositoryTests : IDisposable, IAsyncDisposable
         // act
 
         var job2 = await _repository.Get(job1.Id);
-        job2!.ServerName = "test-server-name";
+        job2!.InstanceId = "test-server-name";
 
         var job3 = await _repository.Get(job1.Id);
-        job3!.ServerName = "funky-server-name";
+        job3!.InstanceId = "funky-server-name";
 
         var update2 = await _repository.Update(job1.Id, job2);
         var update3 = await _repository.Update(job1.Id, job3);

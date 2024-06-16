@@ -89,7 +89,7 @@ internal sealed class BackynetServer : IBackynetServer
 
         async Task HeartbeatTaskCore()
         {
-            await _serverService.Heartbeat(_serverOptions.ServerName, cancellationToken);
+            await _serverService.Heartbeat(cancellationToken);
             await _serverService.Purge(cancellationToken);
             await Task.Delay(_serverOptions.HeartbeatInterval, cancellationToken);
         }

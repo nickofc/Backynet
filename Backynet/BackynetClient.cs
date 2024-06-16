@@ -66,7 +66,7 @@ internal sealed class BackynetClient : IBackynetClient
         }
 
         job.JobState = JobState.Canceled;
-        job.ServerName = null;
+        job.InstanceId = null;
 
         if (await _jobRepository.Update(jobId, job, cancellationToken) is false)
         {

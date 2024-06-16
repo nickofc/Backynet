@@ -109,11 +109,11 @@ public class CoreOptionsExtension : IBackynetContextOptionsExtension
 
     public virtual TimeSpan MaxTimeWithoutHeartbeat => _maxTimeWithoutHeartbeat;
 
-    public virtual CoreOptionsExtension WithMaxTimeWithoutHeartbeat(TimeSpan maxTimeWithoutHearbeat)
+    public virtual CoreOptionsExtension WithMaxTimeWithoutHeartbeat(TimeSpan maxTimeWithoutHeartbeat)
     {
         var clone = Clone();
 
-        clone._maxTimeWithoutHeartbeat = maxTimeWithoutHearbeat;
+        clone._maxTimeWithoutHeartbeat = maxTimeWithoutHeartbeat;
 
         return clone;
     }

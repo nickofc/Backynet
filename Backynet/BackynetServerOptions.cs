@@ -4,6 +4,7 @@ namespace Backynet;
 
 internal sealed class BackynetServerOptions : IBackynetServerOptions
 {
+    public Guid ServerId { get; } = Guid.NewGuid();
     public string ServerName { get; init; } = null!;
     public TimeSpan HeartbeatInterval { get; init; }
     public TimeSpan PoolingInterval { get; init; }
