@@ -5,6 +5,7 @@ namespace Backynet.PostgreSql.Tests;
 
 public class PostgreSqlRepositoryTests : IDisposable, IAsyncDisposable
 {
+    private readonly Guid _instanceId;
     private readonly string _serverName;
     private readonly PostgreSqlJobRepository _repository;
     private readonly Task _serverServiceTask;
@@ -15,6 +16,7 @@ public class PostgreSqlRepositoryTests : IDisposable, IAsyncDisposable
         var serverService = new ServerService(factory, new ServerServiceOptions { MaxTimeWithoutHeartbeat = TimeSpan.FromSeconds(30) });
         var serializer = new MessagePackSerializerProvider();
 
+        _instanceId = Guid.NewGuid();
         _serverName = Guid.NewGuid().ToString();
         _repository = new PostgreSqlJobRepository(factory, serializer, SystemClock.Instance);
         _serverServiceTask = serverService.Heartbeat();
@@ -37,7 +39,7 @@ public class PostgreSqlRepositoryTests : IDisposable, IAsyncDisposable
         {
             var task = Task.Run(async () =>
             {
-                var newJobs = await _repository.Acquire(_serverName, int.MaxValue);
+                var newJobs = await _repository.Acquire(_instanceId, int.MaxValue);
                 Interlocked.Add(ref sum, newJobs.Count);
             });
 
@@ -84,12 +86,12 @@ public class PostgreSqlRepositoryTests : IDisposable, IAsyncDisposable
 
         //act 
 
-        var jobs = await _repository.Acquire(_serverName, 1);
+        var jobs = await _repository.Acquire(_instanceId, 1);
 
         // assert
 
         Assert.True(jobs.Count > 0);
-        Assert.True(jobs.All(x => x.InstanceId == _serverName));
+        Assert.True(jobs.All(x => x.InstanceId == _instanceId));
     }
 
     [Fact]
@@ -104,10 +106,10 @@ public class PostgreSqlRepositoryTests : IDisposable, IAsyncDisposable
         // act
 
         var job2 = await _repository.Get(job1.Id);
-        job2!.InstanceId = "test-server-name";
+        job2!.InstanceId = Guid.NewGuid();
 
         var job3 = await _repository.Get(job1.Id);
-        job3!.InstanceId = "funky-server-name";
+        job3!.InstanceId = Guid.NewGuid();
 
         var update2 = await _repository.Update(job1.Id, job2);
         var update3 = await _repository.Update(job1.Id, job3);

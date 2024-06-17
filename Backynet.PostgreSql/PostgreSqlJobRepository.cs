@@ -28,13 +28,13 @@ internal class PostgreSqlJobRepository : IJobRepository
         (int)JobState.Processing
     ];
 
-    public async Task<IReadOnlyCollection<Job>> Acquire(string serverId, int maxJobsCount, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyCollection<Job>> Acquire(Guid instanceId, int maxJobsCount, CancellationToken cancellationToken = default)
     {
         await using var connection = _npgsqlConnectionFactory.Get();
         await using var command = connection.CreateCommand();
         command.CommandText = """
                               UPDATE jobs
-                              SET instance_id = @server_id
+                              SET instance_id = @instance_id
                               WHERE id IN (SELECT job.id
                                            FROM jobs job
                                            WHERE (job.instance_id IS NULL OR job.instance_id NOT IN (SELECT server.instance_id FROM servers server))
@@ -45,7 +45,7 @@ internal class PostgreSqlJobRepository : IJobRepository
                                            LIMIT @max_rows)
                               RETURNING id, state, created_at, descriptor, instance_id, cron, group_name, next_occurrence_at, row_version, errors, context
                               """;
-        command.Parameters.Add(new NpgsqlParameter<string>("server_id", serverId));
+        command.Parameters.Add(new NpgsqlParameter<Guid>("instance_id", instanceId));
         command.Parameters.Add(new NpgsqlParameter<DateTimeOffset>("now", _systemClock.UtcNow));
         command.Parameters.Add(new NpgsqlParameter<int[]>("intermediate_states", IntermediateStates));
         command.Parameters.Add(new NpgsqlParameter<int>("max_rows", maxJobsCount));

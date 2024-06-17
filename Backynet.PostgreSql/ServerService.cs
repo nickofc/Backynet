@@ -20,7 +20,7 @@ internal sealed class ServerService : IServerService
         command.CommandText = """
                               INSERT INTO servers (instance_id, server_name, heartbeat_on, created_at)
                               VALUES (@instance_id, @server_name, @heartbeat_on, @created_at)
-                              ON CONFLICT (server_name) DO UPDATE
+                              ON CONFLICT (instance_id) DO UPDATE
                                   SET heartbeat_on = @heartbeat_on;
                               """;
         command.Parameters.Add(new NpgsqlParameter<Guid>("instance_id", _serverServiceOptions.InstanceId));

@@ -121,7 +121,7 @@ internal sealed class BackynetServer : IBackynetServer
         {
             // todo: przemysleć jak zminimalizować opoźnienie między dodaniem joba a podjęciem go przez workera
 
-            var jobs = await _jobRepository.Acquire(_serverOptions.ServerName, _threadPool.AvailableThreadCount, cancellationToken);
+            var jobs = await _jobRepository.Acquire(_serverOptions.InstanceId, _threadPool.AvailableThreadCount, cancellationToken);
 
             if (jobs.Count == 0)
             {
