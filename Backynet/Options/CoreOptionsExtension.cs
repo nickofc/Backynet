@@ -11,6 +11,7 @@ public class CoreOptionsExtension : IBackynetContextOptionsExtension
     // todo: osobny modul? 
     private int _maxThreads = Environment.ProcessorCount;
     private string _serverName = Environment.MachineName;
+    private Guid _instanceId = Guid.NewGuid();
     private TimeSpan _poolingInterval = TimeSpan.FromSeconds(2);
     private TimeSpan _heartbeatInterval = TimeSpan.FromSeconds(5);
     private TimeSpan _maxTimeWithoutHeartbeat = TimeSpan.FromSeconds(60);
@@ -27,6 +28,7 @@ public class CoreOptionsExtension : IBackynetContextOptionsExtension
 
         _maxThreads = copyFrom._maxThreads;
         _serverName = copyFrom._serverName;
+        _instanceId = copyFrom._instanceId;
         _poolingInterval = copyFrom._poolingInterval;
         _heartbeatInterval = copyFrom._heartbeatInterval;
         _maxTimeWithoutHeartbeat = copyFrom._maxTimeWithoutHeartbeat;
@@ -119,6 +121,8 @@ public class CoreOptionsExtension : IBackynetContextOptionsExtension
     }
 
     public virtual TimeSpan WatchdogPoolingInterval => _watchdogPoolingInterval;
+
+    public virtual Guid InstanceId => _instanceId;
 
     protected virtual CoreOptionsExtension Clone()
     {

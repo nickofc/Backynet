@@ -11,14 +11,13 @@ internal sealed class ServerServiceOptions : IServerServiceOptions
     public ServerServiceOptions()
     {
     }
-    
+
     public ServerServiceOptions(IBackynetContextOptions backynetContextOptions)
     {
         var coreOptionsExtension = backynetContextOptions.FindExtension<CoreOptionsExtension>() ?? new CoreOptionsExtension();
 
         MaxTimeWithoutHeartbeat = coreOptionsExtension.MaxTimeWithoutHeartbeat;
         ServerName = coreOptionsExtension.ServerName;
-
-        InstanceId = Guid.NewGuid();
+        InstanceId = coreOptionsExtension.InstanceId;
     }
 }

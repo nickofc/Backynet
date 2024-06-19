@@ -33,6 +33,7 @@ internal sealed class BackynetServer : IBackynetServer
 
     private Task? _combinedTasks;
     private CancellationTokenSource? _cancellationTokenSource;
+    private ManualResetEventSlim? _heartbeatCompleted;
 
     public bool IsRunning => _combinedTasks is { IsCompleted: false };
 
@@ -40,6 +41,7 @@ internal sealed class BackynetServer : IBackynetServer
     {
         _logger.WorkerStarting();
 
+        _heartbeatCompleted = new ManualResetEventSlim();
         _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _combinedTasks = Task.WhenAll(HeartbeatTask(_cancellationTokenSource.Token),
             WorkerTask(_cancellationTokenSource.Token), _watchdogService.Start(_cancellationTokenSource.Token));
@@ -91,6 +93,9 @@ internal sealed class BackynetServer : IBackynetServer
         {
             await _serverService.Heartbeat(cancellationToken);
             await _serverService.Purge(cancellationToken);
+
+            _heartbeatCompleted.Set();
+
             await Task.Delay(_serverOptions.HeartbeatInterval, cancellationToken);
         }
     }
@@ -100,6 +105,8 @@ internal sealed class BackynetServer : IBackynetServer
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            _heartbeatCompleted.Wait(cancellationToken);
 
             try
             {
@@ -151,6 +158,8 @@ internal sealed class BackynetServer : IBackynetServer
                     try
                     {
                         await _jobExecutor.Execute(job, combinedCancellationToken.Token);
+
+                        _logger.LogTrace("Completed executing job [JobId = {JobId}]", job.Id);
                     }
                     catch (Exception exception)
                     {
