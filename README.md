@@ -1,3 +1,7 @@
+> [!CAUTION]
+> **This project is currently in the development phase.**
+> Please be aware that this project is a work in progress and not yet ready for production use. It is intended for testing and experimentation purposes only.
+
 # Backynet
 
 [![latest version](https://img.shields.io/nuget/v/Backynet)](https://www.nuget.org/packages/Backynet) [![preview version](https://img.shields.io/nuget/vpre/Backynet)](https://www.nuget.org/packages/Backynet/absoluteLatest) [![downloads](https://img.shields.io/nuget/dt/Backynet)](https://www.nuget.org/packages/Backynet) [![100 - commitow](https://img.shields.io/badge/100%20-commitow-lightgreen.svg)](https://100commitow.pl)
