@@ -1,6 +1,15 @@
 ﻿using Backynet;
 using Backynet.Options;
 
+var token = new CancellationToken();
+
+var cts1 = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+cts1.Cancel();
+
+
+
+
 var optionsBuilder = new BackynetContextOptionsBuilder()
     .UsePostgreSql(Environment.GetEnvironmentVariable("BACKYNET_CONNECTION_STRING"));
 var defaultBackynetContext = new DefaultBackynetContext(optionsBuilder.Options);

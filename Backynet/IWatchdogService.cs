@@ -4,6 +4,12 @@ public interface IWatchdogService
 {
     Task Start(CancellationToken cancellationToken);
 
-    CancellationToken Rent(Guid jobId);
-    void Return(Guid jobId);
+    IWatchdogCancellationScope Create(Guid jobId);
+    void Return(IWatchdogCancellationScope watchdogCancellationScope);
+}
+
+public interface IWatchdogCancellationScope : IAsyncDisposable
+{
+    Guid JobId { get; }
+    CancellationToken CancellationToken { get; }
 }

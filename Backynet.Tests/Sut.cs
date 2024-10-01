@@ -53,7 +53,7 @@ public class Sut : IDisposable, IAsyncDisposable
         await CastAndDispose(_cancellationTokenSource);
         await CastAndDispose(_workerTask);
 
-        await BackynetServer.WaitForShutdown();
+        // await BackynetServer.WaitForShutdown();
 
         return;
 

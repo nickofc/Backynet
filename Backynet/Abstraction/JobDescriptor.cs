@@ -1,21 +1,19 @@
 namespace Backynet.Abstraction;
 
-public readonly struct JobDescriptor : IJobDescriptor
+public readonly struct JobDescriptor
 {
-    public static IJobDescriptor Empty() => JobDescriptorFactory.Create(
-        () => JobDescriptorFactory.Empty.Method());
+    public static JobDescriptor Empty() => JobDescriptorFactory.Create(() => JobDescriptorFactory.Empty.Method());
+    public Method Method { get; }
+    public Argument[] Arguments { get; }
 
-    public IMethod Method { get; }
-    public IArgument[] Arguments { get; }
-
-    public JobDescriptor(IMethod method, IArgument[] arguments)
+    public JobDescriptor(Method method, Argument[] arguments)
     {
         Method = method;
         Arguments = arguments;
     }
 }
 
-public readonly struct Method : IMethod
+public readonly struct Method
 {
     public string TypeName { get; }
     public string Name { get; }
@@ -27,7 +25,7 @@ public readonly struct Method : IMethod
     }
 }
 
-public readonly struct Argument : IArgument
+public readonly struct Argument
 {
     public string TypeName { get; }
     public object? Value { get; }

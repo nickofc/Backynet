@@ -144,7 +144,7 @@ internal class PostgreSqlJobRepository : IJobRepository
         var id = reader.GetGuid(0);
         var state = reader.GetInt32(1);
         var created = (DateTimeOffset)reader.GetDateTime(2);
-        var descriptor = _serializer.Deserialize<IJobDescriptor>(reader.GetFieldValue<byte[]>(3));
+        var descriptor = _serializer.Deserialize<JobDescriptor>(reader.GetFieldValue<byte[]>(3));
 
         Guid? instanceId = null;
 

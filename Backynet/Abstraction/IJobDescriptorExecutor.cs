@@ -2,5 +2,5 @@ namespace Backynet.Abstraction;
 
 public interface IJobDescriptorExecutor
 {
-    Task Execute(IJobDescriptor jobDescriptor, CancellationToken cancellationToken = default);
+    Task Execute(JobDescriptor jobDescriptor, CancellationToken cancellationToken = default);
 }

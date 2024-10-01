@@ -4,6 +4,8 @@ namespace Backynet.Abstraction;
 
 public interface IBackynetClient
 {
+    Task<Guid> Enqueue(Job job);
+    
     Task<Guid> EnqueueAsync(Expression<Func<Task>> expression, CancellationToken cancellationToken = default) =>
         EnqueueAsync(expression, groupName: null, when: null, cancellationToken: cancellationToken);
 

@@ -31,40 +31,29 @@ internal sealed class BackynetServer : IBackynetServer
         _watchdogService = watchdogService;
     }
 
-    private Task? _combinedTasks;
-    private CancellationTokenSource? _cancellationTokenSource;
-    private ManualResetEventSlim? _heartbeatCompleted;
-
-    public bool IsRunning => _combinedTasks is { IsCompleted: false };
-
-    public Task Start(CancellationToken cancellationToken)
+    public async Task Start(CancellationToken cancellationToken)
     {
         _logger.WorkerStarting();
 
-        _heartbeatCompleted = new ManualResetEventSlim();
-        _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        _combinedTasks = Task.WhenAll(HeartbeatTask(_cancellationTokenSource.Token),
-            WorkerTask(_cancellationTokenSource.Token), _watchdogService.Start(_cancellationTokenSource.Token));
-
-        // todo: czy tutaj zwócić _combinedTasks?
-
-        return _combinedTasks.IsCompleted ? _combinedTasks : Task.CompletedTask;
+        await Task.WhenAll([HeartbeatTask(cancellationToken), WorkerTask(cancellationToken), WatchdogTask(cancellationToken)]);
     }
 
-    public async Task Shutdown(CancellationToken cancellationToken)
+    private async Task WatchdogTask(CancellationToken cancellationToken)
     {
-        await _cancellationTokenSource.CancelAsync();
-        await WaitForShutdown(cancellationToken);
-    }
-
-    public async Task WaitForShutdown(CancellationToken cancellationToken)
-    {
-        if (_combinedTasks == null)
+        try
         {
-            return;
+            await _watchdogService.Start(cancellationToken);
         }
+        catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
+        {
+            _logger.LogTrace($"{nameof(WatchdogTask)} is shutting down");
 
-        await Task.WhenAny(_combinedTasks, Task.Delay(-1, cancellationToken));
+            throw;
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "Unexpected error occured");
+        }
     }
 
     private async Task HeartbeatTask(CancellationToken cancellationToken)
@@ -93,9 +82,7 @@ internal sealed class BackynetServer : IBackynetServer
         {
             await _serverService.Heartbeat(cancellationToken);
             await _serverService.Purge(cancellationToken);
-
-            _heartbeatCompleted.Set();
-
+            
             await Task.Delay(_serverOptions.HeartbeatInterval, cancellationToken);
         }
     }
@@ -105,9 +92,7 @@ internal sealed class BackynetServer : IBackynetServer
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            _heartbeatCompleted.Wait(cancellationToken);
-
+            
             try
             {
                 await WorkerTaskCore();
@@ -132,11 +117,7 @@ internal sealed class BackynetServer : IBackynetServer
 
             if (jobs.Count == 0)
             {
-                if (_logger.IsEnabled(LogLevel.Trace))
-                {
-                    _logger.LogTrace("There are no jobs available");
-                }
-
+                _logger.LogTrace("There are no jobs available");
                 await Task.Delay(_serverOptions.PoolingInterval, cancellationToken);
                 return;
             }
@@ -145,11 +126,11 @@ internal sealed class BackynetServer : IBackynetServer
             {
                 _logger.LogTrace("Fetched job [JobId = {JobId}]", job.Id);
 
-                var jobCancellationToken = _watchdogService.Rent(job.Id);
+                var watchdogCancellationScope = _watchdogService.Create(job.Id);
 
                 _logger.LogTrace("Rented cancellation token for job [JobId = {JobId}]", job.Id);
 
-                var combinedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(jobCancellationToken, cancellationToken);
+                var combinedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(watchdogCancellationScope.CancellationToken, cancellationToken);
 
                 _ = _threadPool.Post(async () =>
                 {
@@ -167,7 +148,7 @@ internal sealed class BackynetServer : IBackynetServer
                     }
                     finally
                     {
-                        _watchdogService.Return(job.Id);
+                        await watchdogCancellationScope.DisposeAsync();
 
                         _logger.LogTrace("Returned cancellation token for job [JobId = {JobId}]", job.Id);
 
@@ -177,28 +158,6 @@ internal sealed class BackynetServer : IBackynetServer
             }
 
             await _threadPool.WaitForAvailableThread(cancellationToken);
-        }
-    }
-
-    public void Dispose()
-    {
-        DisposeAsync().AsTask().GetAwaiter().GetResult();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_cancellationTokenSource != null)
-        {
-            await Shutdown(CancellationToken.None);
-
-            _cancellationTokenSource.Dispose();
-            _cancellationTokenSource = null;
-        }
-
-        if (_combinedTasks != null)
-        {
-            _combinedTasks.Dispose();
-            _combinedTasks = null;
         }
     }
 }

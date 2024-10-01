@@ -111,15 +111,11 @@ public class BackynetContext : IDisposable, IAsyncDisposable
     public void Dispose()
     {
         _serviceScope?.Dispose();
-        _backynetServer?.Dispose();
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        if (_serviceScope is IAsyncDisposable serviceScopeAsyncDisposable)
-            await serviceScopeAsyncDisposable.DisposeAsync();
-        else if (_serviceScope != null)
-            _serviceScope.Dispose();
-        if (_backynetServer != null) await _backynetServer.DisposeAsync();
+       Dispose();
+       return ValueTask.CompletedTask;
     }
 }
