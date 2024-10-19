@@ -28,8 +28,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="1_Initial_Migration.sql"/>
-        <EmbeddedResource Include="1_Initial_Migration.sql"/>
+      <None Remove="migration.sql" />
+      <EmbeddedResource Include="migration.sql" />
     </ItemGroup>
 
 </Project>
