@@ -11,8 +11,18 @@ internal sealed class NpgsqlConnectionFactory
         _connectionString = connectionString;
     }
 
-    public NpgsqlConnection Get()
+    public NpgsqlConnection Get(Action<NpgsqlConnectionStringBuilder>? configure = null)
     {
-        return new NpgsqlConnection(_connectionString);
+        var connectionString = _connectionString;
+        
+        if (configure != null)
+        {
+            var connectionStringBuilder = new NpgsqlConnectionStringBuilder(_connectionString);
+            configure.Invoke(connectionStringBuilder);
+
+            connectionString = connectionStringBuilder.ToString();
+        }
+
+        return new NpgsqlConnection(connectionString);
     }
 }

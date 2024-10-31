@@ -1,4 +1,5 @@
 using Backynet.Tests;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Backynet.PostgreSql.Tests;
 

@@ -23,6 +23,11 @@ public class PostgreSqlBackynetContextOptionsBuilder : IPostgreSqlBackynetContex
         return WithOption(x => x.WithAutomaticMigration(isAutomaticMigrationEnabled));
     }
 
+    public virtual PostgreSqlBackynetContextOptionsBuilder UseSchema(string? schema)
+    {
+        return WithOption(x => x.WithSchema(schema));
+    }
+
     private PostgreSqlBackynetContextOptionsBuilder WithOption(Func<PostgreSqlOptionsExtension, PostgreSqlOptionsExtension> withFunc)
     {
         ((IBackynetContextOptionsBuilderInfrastructure)OptionsBuilder).AddOrUpdateExtension(

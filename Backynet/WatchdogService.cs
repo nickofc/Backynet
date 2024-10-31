@@ -32,7 +32,7 @@ public class WatchdogService : IWatchdogService
                     .Select(x => x.Key)
                     .ToArray(); // todo: reduce gc allocations
 
-                jobIds = await _watchdogRepository.Get(jobIds, _options.ServerName, cancellationToken);
+              //  jobIds = await _watchdogRepository.Get(jobIds, _options.ServerName, cancellationToken);
 
                 foreach (var jobId in jobIds)
                 {

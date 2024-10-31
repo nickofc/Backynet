@@ -7,10 +7,6 @@ namespace Backynet.PostgreSql;
 
 public class PostgreSqlOptionsExtension : IBackynetContextOptionsExtension
 {
-    private string _connectionString;
-    private TimeSpan? _commandTimeout;
-    private bool? _isAutomaticMigrationEnabled;
-
     public PostgreSqlOptionsExtension()
     {
     }
@@ -36,6 +32,7 @@ public class PostgreSqlOptionsExtension : IBackynetContextOptionsExtension
     {
     }
 
+    private string _connectionString;
     public virtual string ConnectionString => _connectionString;
 
     public virtual PostgreSqlOptionsExtension WithConnectionString(string connectionString)
@@ -47,6 +44,7 @@ public class PostgreSqlOptionsExtension : IBackynetContextOptionsExtension
         return clone;
     }
 
+    private TimeSpan? _commandTimeout;
     public virtual TimeSpan? CommandTimeout => _commandTimeout;
 
     public virtual PostgreSqlOptionsExtension WithCommandTimeout(TimeSpan? commandTimeout)
@@ -58,6 +56,7 @@ public class PostgreSqlOptionsExtension : IBackynetContextOptionsExtension
         return clone;
     }
 
+    private bool? _isAutomaticMigrationEnabled;
     public virtual bool? IsAutomaticMigrationEnabled => _isAutomaticMigrationEnabled;
 
     public virtual PostgreSqlOptionsExtension WithAutomaticMigration(bool? isAutomaticMigrationEnabled)
@@ -65,6 +64,18 @@ public class PostgreSqlOptionsExtension : IBackynetContextOptionsExtension
         var clone = Clone();
 
         clone._isAutomaticMigrationEnabled = isAutomaticMigrationEnabled;
+
+        return clone;
+    }
+
+    private string? _schema;
+    public virtual string? Schema => _schema;
+
+    public PostgreSqlOptionsExtension WithSchema(string? schema)
+    {
+        var clone = Clone();
+
+        clone._schema = schema;
 
         return clone;
     }

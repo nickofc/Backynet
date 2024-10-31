@@ -12,13 +12,11 @@ internal sealed class WatchdogRepository : IWatchdogRepository
         _npgsqlConnectionFactory = npgsqlConnectionFactory;
     }
 
-    public async Task<Guid[]> Get(Guid[] jobIds, string serverName, CancellationToken cancellationToken)
+    public async Task<IReadOnlyCollection<Guid>> Get(Guid[] jobIds, string serverName, CancellationToken cancellationToken)
     {
         await using var connection = _npgsqlConnectionFactory.Get();
         await using var command = connection.CreateCommand();
-        command.CommandText = """
-                              SELECT id FROM jobs WHERE id = ANY (@job_ids) AND state = @job_state
-                              """;
+        command.CommandText = "SELECT id FROM jobs WHERE id = ANY (@job_ids) AND state = @job_state";
         command.Parameters.Add(new NpgsqlParameter<Guid[]>("job_ids", jobIds));
         command.Parameters.Add(new NpgsqlParameter<int>("job_state", CastTo<int>.From(JobState.Canceled)));
 
@@ -34,6 +32,6 @@ internal sealed class WatchdogRepository : IWatchdogRepository
             rows.Add(jobId);
         }
 
-        return rows.ToArray(); //todo: replace with array
+        return rows;
     }
 }
