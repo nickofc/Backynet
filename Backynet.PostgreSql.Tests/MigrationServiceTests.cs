@@ -10,10 +10,10 @@ public class MigrationServiceTests : IClassFixture<DatabaseFixture>
     }
 
     [Fact] // todo: add test for build schema from zero
-    public async Task Should_Migrate()
+    public async Task Should_Migrate_Database()
     {
         var npgsqlConnectionFactory = new NpgsqlConnectionFactory(_databaseFixture.ConnectionString);
-        var migrationService = new MigrationService(npgsqlConnectionFactory);
+        var migrationService = new MigrationService(npgsqlConnectionFactory, new MigrationServiceOptions { SearchPath = "backynet"});
         await migrationService.Perform();
     }
 }

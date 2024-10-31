@@ -1,16 +1,17 @@
 DO
 $$
     DECLARE
-        version integer;
+        version     integer = 0;
+        search_path varchar = @search_path;
     BEGIN
+        EXECUTE format('CREATE SCHEMA IF NOT EXISTS %I', search_path);
+        EXECUTE format('SET search_path TO %I', search_path);
+
         IF EXISTS (SELECT 1
                    FROM information_schema.tables
-                   WHERE table_schema = 'public'
+                   WHERE table_schema = search_path
                      AND table_name = 'schema_version') THEN
             SELECT schema_version.version INTO version FROM schema_version;
-        ELSE
-            INSERT INTO schema_version VALUES (0);
-            version := 0;
         END IF;
 
         IF (version = 0) THEN
@@ -45,14 +46,10 @@ $$
                 created_at   timestamp with time zone
             );
 
-            -- noinspection SqlWithoutWhere
-            UPDATE schema_version SET version = 1;
+            INSERT INTO schema_version VALUES (1);
             version := 1;
         END IF;
 
-        IF (version = 1) THEN
-            -- noinspection SqlWithoutWhere
-            -- UPDATE schema_version SET version = 2;
-        END IF;
+        EXECUTE format('RESET search_path');
     END;
 $$;
