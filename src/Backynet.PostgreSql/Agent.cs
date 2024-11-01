@@ -3,7 +3,7 @@ using Npgsql;
 
 namespace Backynet.PostgreSql;
 
-internal class Agent
+internal sealed class Agent
 {
     private readonly NpgsqlConnectionFactory _npgsqlConnectionFactory;
 
@@ -27,7 +27,6 @@ internal class Agent
         {
             await using var command = connection.CreateCommand();
             command.CommandText = $"LISTEN {channel}";
-            command.Parameters.Add(new NpgsqlParameter<string>("data", channel));
             await command.ExecuteNonQueryAsync(cancellationToken);
         }
 
@@ -46,7 +45,7 @@ internal class Agent
 
         void Configure(NpgsqlConnectionStringBuilder connectionStringBuilder)
         {
-            connectionStringBuilder.KeepAlive = 30;
+            connectionStringBuilder.KeepAlive = 30; // todo: load from options
         }
 
         void ConnectionOnNotification(object _, NpgsqlNotificationEventArgs eventArgs)
