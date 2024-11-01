@@ -70,7 +70,7 @@ internal sealed class BackynetClient : IBackynetClient
 
         if (await _jobRepository.Update(jobId, job, cancellationToken) is false)
         {
-            throw new UnreachableException("Unable to update job in transaction scope.");
+            throw new InvalidOperationException("Unable to update job in transaction scope.");
         }
 
         await transactionScope.CommitAsync();

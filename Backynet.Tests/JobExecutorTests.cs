@@ -2,7 +2,6 @@ using Backynet.Abstraction;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using NuGet.Frameworks;
 
 namespace Backynet.Tests;
 
