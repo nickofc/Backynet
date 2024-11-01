@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Npgsql;
 
 namespace Backynet.PostgreSql;
@@ -11,8 +12,12 @@ internal class Agent
         _npgsqlConnectionFactory = npgsqlConnectionFactory;
     }
 
-    public async Task Listen(string[] channels, Action<CallbackEventArgs> callback, CancellationToken cancellationToken)
+    public Func<CallbackEventArgs, CancellationToken, Task> OnCallbackReceived { get; set; } = (_, _) => Task.CompletedTask;
+    public Func<Task> OnListenStarted { get; set; } = () => Task.CompletedTask;
+
+    public async Task Listen(string[] channels, CancellationToken cancellationToken)
     {
+        var events = new ConcurrentQueue<CallbackEventArgs>();
         await using var connection = _npgsqlConnectionFactory.Get(Configure);
 
         connection.Notification += ConnectionOnNotification;
@@ -20,15 +25,23 @@ internal class Agent
 
         foreach (var channel in channels)
         {
-            var command = connection.CreateCommand();
-            command.CommandText = $"LISTEN {channel};";
+            await using var command = connection.CreateCommand();
+            command.CommandText = $"LISTEN {channel}";
+            command.Parameters.Add(new NpgsqlParameter<string>("data", channel));
             await command.ExecuteNonQueryAsync(cancellationToken);
         }
+
+        await OnListenStarted();
 
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
             await connection.WaitAsync(cancellationToken);
+
+            while (events.TryDequeue(out var eventArgs))
+            {
+                await OnCallbackReceived(eventArgs, cancellationToken);
+            }
         }
 
         void Configure(NpgsqlConnectionStringBuilder connectionStringBuilder)
@@ -38,11 +51,22 @@ internal class Agent
 
         void ConnectionOnNotification(object _, NpgsqlNotificationEventArgs eventArgs)
         {
-            callback(new CallbackEventArgs(eventArgs.Channel, eventArgs.Payload));
+            events.Enqueue(new CallbackEventArgs(eventArgs.Channel, eventArgs.Payload));
         }
 
         // ReSharper disable once FunctionNeverReturns
     }
 
-    public class CallbackEventArgs(string Channel, string Payload);
+    public async Task Publish(string channel, CancellationToken cancellationToken = default)
+    {
+        await using var connection = _npgsqlConnectionFactory.Get();
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = $"NOTIFY {channel}";
+
+        await connection.OpenAsync(cancellationToken);
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    public record CallbackEventArgs(string Channel, string Payload);
 }
