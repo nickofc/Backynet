@@ -10,8 +10,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Backynet.PostgreSql\Backynet.PostgreSql.csproj"/>
-        <ProjectReference Include="..\..\Backynet\Backynet.csproj"/>
+        <ProjectReference Include="..\..\src\Backynet.AspNetCore\Backynet.AspNetCore.csproj" />
+        <ProjectReference Include="..\..\src\Backynet.PostgreSql\Backynet.PostgreSql.csproj" />
+        <ProjectReference Include="..\..\src\Backynet\Backynet.csproj" />
     </ItemGroup>
 
 </Project>

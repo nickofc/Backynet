@@ -29,14 +29,14 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Backynet\Backynet.csproj"/>
-        <ProjectReference Include="..\Backynet.PostgreSql\Backynet.PostgreSql.csproj"/>
-    </ItemGroup>
-
-    <ItemGroup>
         <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
             <_Parameter1>Backynet.Tests.Performance</_Parameter1>
         </AssemblyAttribute>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\Backynet.PostgreSql\Backynet.PostgreSql.csproj" />
+      <ProjectReference Include="..\..\src\Backynet\Backynet.csproj" />
     </ItemGroup>
 
 </Project>

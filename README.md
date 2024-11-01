@@ -47,7 +47,7 @@ public class DefaultBackynetContext : BackynetContext
 }
 ```
 
-Check out more [examples](https://github.com/nickofc/backynet/tree/master/example/).
+Check out more [samples](https://github.com/nickofc/backynet/tree/master/sample/).
 
 # Benchmarks
 

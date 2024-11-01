@@ -17,7 +17,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Backynet.Tests\Backynet.Tests.csproj"/>
-        <ProjectReference Include="..\Backynet\Backynet.csproj"/>
     </ItemGroup>
 
 </Project>
