@@ -7,6 +7,10 @@ namespace Backynet.PostgreSql;
 
 public class PostgreSqlOptionsExtension : IBackynetContextOptionsExtension
 {
+    private const string DefaultSchemaName = "backynet";
+    private static readonly TimeSpan DefaultLockDuration = TimeSpan.FromMinutes(5);
+    private const int DefaultFetchSize = 50;
+
     public PostgreSqlOptionsExtension()
     {
     }
@@ -14,18 +18,25 @@ public class PostgreSqlOptionsExtension : IBackynetContextOptionsExtension
     protected PostgreSqlOptionsExtension(PostgreSqlOptionsExtension copyFrom)
     {
         _connectionString = copyFrom._connectionString;
-        _commandTimeout = copyFrom._commandTimeout;
         _isAutomaticMigrationEnabled = copyFrom._isAutomaticMigrationEnabled;
     }
 
     public virtual void ApplyServices(IServiceCollection services)
     {
-        services.TryAddSingleton(new NpgsqlConnectionFactory(_connectionString));
-        services.TryAddSingleton<IPostgreSqlJobRepositoryOptions, PostgreSqlJobRepositoryOptions>();
+        services.TryAddSingleton<PostgreSqlOptions>();
+        services.TryAddSingleton<NpgsqlConnectionFactory>();
+
         services.TryAddSingleton<IJobRepository, PostgreSqlJobRepository>();
-        services.TryAddSingleton<IServerServiceOptions, ServerServiceOptions>();
-        services.TryAddSingleton<IServerService, ServerService>();
-        services.TryAddSingleton<IWatchdogRepository, WatchdogRepository>();
+        services.TryAddSingleton<PostgreSqlJobQueue>();
+
+        services.TryAddScoped<MigrationService>();
+        services.AddHostedService<MigrationHostedService>();
+
+        services.TryAddScoped<PostgreSqlJobDataProducer>();
+        services.TryAddScoped<PostgreSqlJobDataConsumer>();
+        services.TryAddScoped<PostgreSqlWorker>();
+
+        services.AddHostedService<PostgreSqlBackynetServer>();
     }
 
     public void Validate(IBackynetContextOptions options)
@@ -44,22 +55,10 @@ public class PostgreSqlOptionsExtension : IBackynetContextOptionsExtension
         return clone;
     }
 
-    private TimeSpan? _commandTimeout;
-    public virtual TimeSpan? CommandTimeout => _commandTimeout;
+    private bool _isAutomaticMigrationEnabled;
+    public virtual bool IsAutomaticMigrationEnabled => _isAutomaticMigrationEnabled;
 
-    public virtual PostgreSqlOptionsExtension WithCommandTimeout(TimeSpan? commandTimeout)
-    {
-        var clone = Clone();
-
-        clone._commandTimeout = commandTimeout;
-
-        return clone;
-    }
-
-    private bool? _isAutomaticMigrationEnabled;
-    public virtual bool? IsAutomaticMigrationEnabled => _isAutomaticMigrationEnabled;
-
-    public virtual PostgreSqlOptionsExtension WithAutomaticMigration(bool? isAutomaticMigrationEnabled)
+    public virtual PostgreSqlOptionsExtension WithAutomaticMigration(bool isAutomaticMigrationEnabled)
     {
         var clone = Clone();
 
@@ -68,10 +67,10 @@ public class PostgreSqlOptionsExtension : IBackynetContextOptionsExtension
         return clone;
     }
 
-    private string? _schema;
-    public virtual string? Schema => _schema;
+    private string _schema = DefaultSchemaName;
+    public virtual string Schema => _schema;
 
-    public PostgreSqlOptionsExtension WithSchema(string? schema)
+    public PostgreSqlOptionsExtension WithSchema(string schema)
     {
         var clone = Clone();
 
@@ -79,6 +78,45 @@ public class PostgreSqlOptionsExtension : IBackynetContextOptionsExtension
 
         return clone;
     }
+
+    private bool _dropSchemaOnShutdown;
+    public virtual bool DropSchemaOnShutdown => _dropSchemaOnShutdown;
+
+    public PostgreSqlOptionsExtension WithDropSchemaOnShutdown(bool dropSchemaOnShutdown)
+    {
+        var clone = Clone();
+
+        clone._dropSchemaOnShutdown = dropSchemaOnShutdown;
+
+        return clone;
+    }
+
+    private TimeSpan _lockDuration = DefaultLockDuration;
+    public virtual TimeSpan LockDuration => _lockDuration;
+
+    public PostgreSqlOptionsExtension WithLockDuration(TimeSpan lockDuration)
+    {
+        var clone = Clone();
+
+        clone._lockDuration = lockDuration;
+
+        return clone;
+    }
+
+    private int _fetchSize = DefaultFetchSize;
+    public virtual int FetchSize => _fetchSize;
+    
+    public PostgreSqlOptionsExtension WithFetchSize(int fetchSize)
+    {
+        var clone = Clone();
+
+        clone._fetchSize = fetchSize;
+
+        return clone;
+    }
+
+    public TimeSpan PoolingInterval { get; set; } = TimeSpan.FromSeconds(10);
+    public TimeSpan RefreshInterval { get; set; } = TimeSpan.FromSeconds(10);
 
     protected virtual PostgreSqlOptionsExtension Clone()
     {

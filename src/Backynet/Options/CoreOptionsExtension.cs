@@ -7,15 +7,8 @@ public class CoreOptionsExtension : IBackynetContextOptionsExtension
 {
     private ILoggerFactory? _loggerFactory;
     private IServiceProvider? _applicationServiceProvider;
-
-    // todo: osobny modul? 
     private int _maxThreads = Environment.ProcessorCount;
     private string _serverName = Environment.MachineName;
-    private Guid _instanceId = Guid.NewGuid();
-    private TimeSpan _poolingInterval = TimeSpan.FromSeconds(2);
-    private TimeSpan _heartbeatInterval = TimeSpan.FromSeconds(5);
-    private TimeSpan _maxTimeWithoutHeartbeat = TimeSpan.FromSeconds(60);
-    private TimeSpan _watchdogPoolingInterval = TimeSpan.FromSeconds(5);
 
     public CoreOptionsExtension()
     {
@@ -25,13 +18,8 @@ public class CoreOptionsExtension : IBackynetContextOptionsExtension
     {
         _loggerFactory = copyFrom._loggerFactory;
         _applicationServiceProvider = copyFrom._applicationServiceProvider;
-
         _maxThreads = copyFrom._maxThreads;
         _serverName = copyFrom._serverName;
-        _instanceId = copyFrom._instanceId;
-        _poolingInterval = copyFrom._poolingInterval;
-        _heartbeatInterval = copyFrom._heartbeatInterval;
-        _maxTimeWithoutHeartbeat = copyFrom._maxTimeWithoutHeartbeat;
     }
 
     public virtual void ApplyServices(IServiceCollection services)
@@ -76,17 +64,6 @@ public class CoreOptionsExtension : IBackynetContextOptionsExtension
         return clone;
     }
 
-    public virtual TimeSpan PoolingInterval => _poolingInterval;
-
-    public virtual CoreOptionsExtension WithPoolingInterval(TimeSpan poolingInterval)
-    {
-        var clone = Clone();
-
-        clone._poolingInterval = poolingInterval;
-
-        return clone;
-    }
-
     public virtual string ServerName => _serverName;
 
     public virtual CoreOptionsExtension WithServerName(string serverName)
@@ -97,32 +74,6 @@ public class CoreOptionsExtension : IBackynetContextOptionsExtension
 
         return clone;
     }
-
-    public virtual TimeSpan HeartbeatInterval => _heartbeatInterval;
-
-    public virtual CoreOptionsExtension WithHeartbeatInterval(TimeSpan heartbeatInterval)
-    {
-        var clone = Clone();
-
-        clone._heartbeatInterval = heartbeatInterval;
-
-        return clone;
-    }
-
-    public virtual TimeSpan MaxTimeWithoutHeartbeat => _maxTimeWithoutHeartbeat;
-
-    public virtual CoreOptionsExtension WithMaxTimeWithoutHeartbeat(TimeSpan maxTimeWithoutHeartbeat)
-    {
-        var clone = Clone();
-
-        clone._maxTimeWithoutHeartbeat = maxTimeWithoutHeartbeat;
-
-        return clone;
-    }
-
-    public virtual TimeSpan WatchdogPoolingInterval => _watchdogPoolingInterval;
-
-    public virtual Guid InstanceId => _instanceId;
 
     protected virtual CoreOptionsExtension Clone()
     {

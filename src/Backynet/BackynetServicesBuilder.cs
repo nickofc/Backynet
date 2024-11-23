@@ -27,7 +27,6 @@ public class BackynetServicesBuilder
             return coreOptionsExtension.LoggerFactory ?? new NullLoggerFactory();
         });
         _services.TryAddSingleton(typeof(ILogger<>), typeof(Logger<>));
-        _services.TryAddSingleton<IBackynetServerOptions, BackynetServerOptions>();
         _services.TryAddSingleton<IBackynetContextServices, BackynetContextServices>();
         _services.TryAddSingleton<IBackynetContextOptions>(sp =>
         {
@@ -36,11 +35,8 @@ public class BackynetServicesBuilder
         });
         _services.TryAddSingleton<ISerializer, MessagePackSerializerProvider>();
         _services.TryAddSingleton<IBackynetClient, BackynetClient>();
-        _services.TryAddSingleton<IBackynetServer, BackynetServer>();
+        //_services.TryAddSingleton<IBackynetServer, BackynetServer>();
         _services.TryAddSingleton<IJobExecutor, JobExecutor>();
-
-        _services.TryAddSingleton<IThreadPoolOptions, ThreadPoolOptions>();
-        _services.TryAddSingleton<IThreadPool, ThreadPool>();
 
         _services.TryAddSingleton<IJobDescriptorExecutor>((sp) =>
         {
@@ -55,11 +51,8 @@ public class BackynetServicesBuilder
             return new JobDescriptorExecutor();
         });
 
-        _services.TryAddSingleton<IWatchdogOptions, WatchdogOptions>();
-        _services.TryAddSingleton<IWatchdogService, WatchdogService>();
-
         _services.TryAddSingleton<ITransactionScopeFactory, NullTransactionScopeFactory>();
-
+        
         return this;
     }
 }

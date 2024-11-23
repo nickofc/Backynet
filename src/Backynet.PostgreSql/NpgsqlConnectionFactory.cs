@@ -4,20 +4,20 @@ namespace Backynet.PostgreSql;
 
 internal sealed class NpgsqlConnectionFactory
 {
-    private readonly string _connectionString;
+    private readonly PostgreSqlOptions _postgreSqlOptions;
 
-    public NpgsqlConnectionFactory(string connectionString)
+    public NpgsqlConnectionFactory(PostgreSqlOptions postgreSqlOptions)
     {
-        _connectionString = connectionString;
+        _postgreSqlOptions = postgreSqlOptions;
     }
 
     public NpgsqlConnection Get(Action<NpgsqlConnectionStringBuilder>? configure = null)
     {
-        var connectionString = _connectionString;
+        var connectionString = _postgreSqlOptions.ConnectionString;
         
         if (configure != null)
         {
-            var connectionStringBuilder = new NpgsqlConnectionStringBuilder(_connectionString);
+            var connectionStringBuilder = new NpgsqlConnectionStringBuilder(connectionString);
             configure.Invoke(connectionStringBuilder);
 
             connectionString = connectionStringBuilder.ToString();

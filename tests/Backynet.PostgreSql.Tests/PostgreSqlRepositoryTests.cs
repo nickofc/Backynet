@@ -39,7 +39,7 @@ public class PostgreSqlRepositoryTests : IDisposable, IAsyncDisposable
         {
             var task = Task.Run(async () =>
             {
-                var newJobs = await _repository.Acquire(_instanceId, int.MaxValue);
+                var newJobs = await _repository.Fetch(_instanceId, int.MaxValue);
                 Interlocked.Add(ref sum, newJobs.Count);
             });
 
@@ -86,7 +86,7 @@ public class PostgreSqlRepositoryTests : IDisposable, IAsyncDisposable
 
         //act 
 
-        var jobs = await _repository.Acquire(_instanceId, 1);
+        var jobs = await _repository.Fetch(_instanceId, 1);
 
         // assert
 

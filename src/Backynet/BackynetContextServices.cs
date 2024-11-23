@@ -16,12 +16,12 @@ public class BackynetContextServices : IBackynetContextServices
         return this;
     }
 
-    public ICurrentBackynetContext CurrentContext { get; private set; }
-    public IServiceProvider InternalServiceProvider { get; private set; }
+    public ICurrentBackynetContext CurrentContext { get; private set; } = null!;
+    public IServiceProvider InternalServiceProvider { get; private set; } = null!;
 }
 
 public class CurrentContext : ICurrentBackynetContext
 {
-    public BackynetContext BackynetContext { get; internal set; }
-    public BackynetContextOptions ContextOptions { get; internal set; }
+    public BackynetContext BackynetContext { get; internal set; } = null!;
+    public BackynetContextOptions ContextOptions { get; internal set; } = null!;
 }

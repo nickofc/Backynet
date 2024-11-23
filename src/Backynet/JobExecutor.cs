@@ -80,7 +80,6 @@ public class JobExecutor : IJobExecutor
 
                 job.JobState = JobState.Succeeded;
                 job.NextOccurrenceAt = null;
-                job.InstanceId = null;
 
                 changed = true;
             }
@@ -89,7 +88,6 @@ public class JobExecutor : IJobExecutor
                 job.Errors.Add(exception.ToString());
                 job.JobState = JobState.Failed;
                 job.NextOccurrenceAt = null;
-                job.InstanceId = null;
 
                 changed = true;
             }

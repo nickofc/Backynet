@@ -6,9 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddLogging();
+
 builder.Services.AddBackynetContext<DefaultBackynetContext>((sp, options) =>
 {
-    options.UsePostgreSql(Environment.GetEnvironmentVariable("BACKYNET_CONNECTION_STRING") ??
+    options.UsePostgreSql(builder.Configuration.GetConnectionString("PostgreSql") ??
                           throw new InvalidOperationException("Unable to read connection string"));
     options.UseLoggerFactory(sp.GetRequiredService<ILoggerFactory>());
     options.UseApplicationServiceProvider(sp);

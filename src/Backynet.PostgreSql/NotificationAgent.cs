@@ -3,11 +3,13 @@ using Npgsql;
 
 namespace Backynet.PostgreSql;
 
-internal sealed class Agent
+public record CallbackEventArgs(string Channel, string Payload);
+
+internal sealed class NotificationAgent
 {
     private readonly NpgsqlConnectionFactory _npgsqlConnectionFactory;
 
-    public Agent(NpgsqlConnectionFactory npgsqlConnectionFactory)
+    public NotificationAgent(NpgsqlConnectionFactory npgsqlConnectionFactory)
     {
         _npgsqlConnectionFactory = npgsqlConnectionFactory;
     }
@@ -66,6 +68,4 @@ internal sealed class Agent
         await connection.OpenAsync(cancellationToken);
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
-
-    public record CallbackEventArgs(string Channel, string Payload);
 }

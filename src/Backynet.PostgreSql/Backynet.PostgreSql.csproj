@@ -7,6 +7,15 @@
         <Version>0.0.1-alpha</Version>
         <PackageProjectUrl>https://github.com/nickofc/backynet</PackageProjectUrl>
         <PackageLicenseUrl>https://github.com/nickofc/backynet/blob/master/LICENSE</PackageLicenseUrl>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
 
     <ItemGroup>
@@ -29,7 +38,6 @@
 
     <ItemGroup>
         <None Remove="migration.sql"/>
-        <EmbeddedResource Include="migration.sql"/>
     </ItemGroup>
 
 </Project>

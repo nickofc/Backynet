@@ -10,6 +10,14 @@
         <PackageProjectUrl>https://github.com/nickofc/backynet</PackageProjectUrl>
         <PackageLicenseUrl>https://github.com/nickofc/backynet/blob/master/LICENSE</PackageLicenseUrl>
     </PropertyGroup>
+    
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    </PropertyGroup>
+    
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    </PropertyGroup>
 
     <ItemGroup>
         <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">

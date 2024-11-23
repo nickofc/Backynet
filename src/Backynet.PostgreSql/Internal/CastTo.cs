@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace Backynet.PostgreSql;
+namespace Backynet.PostgreSql.Internal;
 
 /// https://stackoverflow.com/a/23391746
 /// <summary>

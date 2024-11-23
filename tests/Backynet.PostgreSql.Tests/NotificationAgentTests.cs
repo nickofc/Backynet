@@ -2,11 +2,11 @@ using System.Collections.Concurrent;
 
 namespace Backynet.PostgreSql.Tests;
 
-public class AgentTests : IClassFixture<DatabaseFixture>
+public class NotificationAgentTests : IClassFixture<DatabaseFixture>
 {
     private readonly DatabaseFixture _databaseFixture;
 
-    public AgentTests(DatabaseFixture databaseFixture)
+    public NotificationAgentTests(DatabaseFixture databaseFixture)
     {
         _databaseFixture = databaseFixture;
     }
@@ -18,10 +18,10 @@ public class AgentTests : IClassFixture<DatabaseFixture>
         var runtime = TimeSpan.FromSeconds(15);
 
         var agentStartTask = new TaskCompletionSource();
-        var concurrentBag = new ConcurrentBag<(Agent.CallbackEventArgs, CancellationToken)>();
+        var concurrentBag = new ConcurrentBag<(NotificationAgent.CallbackEventArgs, CancellationToken)>();
         using var cancellationTokenSource = new CancellationTokenSource(runtime);
         var npgsqlConnectionFactory = new NpgsqlConnectionFactory(_databaseFixture.ConnectionString);
-        var agent = new Agent(npgsqlConnectionFactory)
+        var agent = new NotificationAgent(npgsqlConnectionFactory)
         {
             OnListenStarted = () =>
             {

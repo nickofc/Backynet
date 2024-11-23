@@ -1,11 +1,7 @@
 namespace Backynet.Abstraction;
 
-public interface IBackynetServer : IDisposable, IAsyncDisposable
+public interface IBackynetServer
 {
-    bool IsRunning { get; }
-
     Task Start(CancellationToken cancellationToken);
-    Task Shutdown(CancellationToken cancellationToken);
-
-    Task WaitForShutdown(CancellationToken cancellationToken = default);
+    Task Stop(CancellationToken cancellationToken);
 }

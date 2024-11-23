@@ -1,14 +1,23 @@
 ﻿using Backynet;
 using Backynet.Options;
+using Microsoft.Extensions.Configuration;
+
+var configurationRoot = new ConfigurationBuilder()
+    .AddUserSecrets<Program>()
+    .Build();
 
 var optionsBuilder = new BackynetContextOptionsBuilder()
-    .UsePostgreSql(Environment.GetEnvironmentVariable("BACKYNET_CONNECTION_STRING"));
-var defaultBackynetContext = new DefaultBackynetContext(optionsBuilder.Options);
+    .UsePostgreSql(configurationRoot.GetConnectionString("PostgreSql"));
+var backynetContext = new DefaultBackynetContext(optionsBuilder.Options);
 
 using var cts = new CancellationTokenSource();
-await defaultBackynetContext.Server.Start(cts.Token);
 
-await defaultBackynetContext.Client.EnqueueAsync(() => Calculator.Calculate(100, 200));
+await backynetContext.Client.EnqueueAsync(() => Calculator.Calculate(100, 200));
+
+await backynetContext.Server.Start(cts.Token);
+
+
+await backynetContext.Client.EnqueueAsync(() => Calculator.Calculate(100, 200));
 
 Console.ReadKey();
 

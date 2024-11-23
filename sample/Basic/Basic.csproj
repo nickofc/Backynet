@@ -7,12 +7,18 @@
         <Nullable>enable</Nullable>
         <RootNamespace>ConsoleApp1</RootNamespace>
         <WarningLevel>0</WarningLevel>
+        <UserSecretsId>ca201624-bd0e-494c-86b6-249c49dafe31</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\Backynet.AspNetCore\Backynet.AspNetCore.csproj" />
-        <ProjectReference Include="..\..\src\Backynet.PostgreSql\Backynet.PostgreSql.csproj" />
-        <ProjectReference Include="..\..\src\Backynet\Backynet.csproj" />
+        <ProjectReference Include="..\..\src\Backynet.AspNetCore\Backynet.AspNetCore.csproj"/>
+        <ProjectReference Include="..\..\src\Backynet.PostgreSql\Backynet.PostgreSql.csproj"/>
+        <ProjectReference Include="..\..\src\Backynet\Backynet.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Configuration"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets"/>
     </ItemGroup>
 
 </Project>

@@ -13,19 +13,29 @@ public class PostgreSqlBackynetContextOptionsBuilder : IPostgreSqlBackynetContex
 
     BackynetContextOptionsBuilder IPostgreSqlBackynetContextOptionsBuilderInfrastructure.OptionsBuilder => OptionsBuilder;
 
-    public virtual PostgreSqlBackynetContextOptionsBuilder UseCommandTimeout(TimeSpan? commandTimeout)
-    {
-        return WithOption(x => x.WithCommandTimeout(commandTimeout));
-    }
-
-    public virtual PostgreSqlBackynetContextOptionsBuilder UseAutomaticMigration(bool? isAutomaticMigrationEnabled)
+    public virtual PostgreSqlBackynetContextOptionsBuilder UseAutomaticMigration(bool isAutomaticMigrationEnabled)
     {
         return WithOption(x => x.WithAutomaticMigration(isAutomaticMigrationEnabled));
     }
 
-    public virtual PostgreSqlBackynetContextOptionsBuilder UseSchema(string? schema)
+    public virtual PostgreSqlBackynetContextOptionsBuilder UseSchema(string schema)
     {
         return WithOption(x => x.WithSchema(schema));
+    }
+
+    public virtual PostgreSqlBackynetContextOptionsBuilder UseDropSchemaOnShutdown(bool dropSchemaOnShutdown)
+    {
+        return WithOption(x => x.WithDropSchemaOnShutdown(dropSchemaOnShutdown));
+    }
+
+    public virtual PostgreSqlBackynetContextOptionsBuilder UseFetchSize(int fetchSize)
+    {
+        return WithOption(x => x.WithFetchSize(fetchSize));
+    }
+
+    public virtual PostgreSqlBackynetContextOptionsBuilder UseLockDuration(TimeSpan lockDuration)
+    {
+        return WithOption(x => x.WithLockDuration(lockDuration));
     }
 
     private PostgreSqlBackynetContextOptionsBuilder WithOption(Func<PostgreSqlOptionsExtension, PostgreSqlOptionsExtension> withFunc)

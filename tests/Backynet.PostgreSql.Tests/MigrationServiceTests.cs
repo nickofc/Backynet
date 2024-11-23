@@ -13,7 +13,7 @@ public class MigrationServiceTests : IClassFixture<DatabaseFixture>
     public async Task Should_Migrate_Database()
     {
         var npgsqlConnectionFactory = new NpgsqlConnectionFactory(_databaseFixture.ConnectionString);
-        var migrationService = new MigrationService(npgsqlConnectionFactory, new MigrationServiceOptions { SearchPath = "backynet"});
-        await migrationService.Perform();
+        var migrationService = new MigrationService(npgsqlConnectionFactory, new PostgreSqlOptions());
+        await migrationService.Create();
     }
 }

@@ -69,7 +69,12 @@ public static class JobDescriptorFactory
             var value = GetValueFromExp(methodCallExpression.Arguments[i]);
             var type = value?.GetType();
 
-            var typeName = type is null ? null : type.AssemblyQualifiedName ?? throw new InvalidOperationException("Unable to get assembly qualified name.");
+            var typeName = type?.AssemblyQualifiedName;
+            if (typeName == null)
+            {
+                throw new InvalidOperationException("Unable to get assembly qualified name.");
+            }
+            
             var argument = new Argument(typeName, value);
 
             values[i] = argument;
@@ -104,16 +109,16 @@ public static class JobDescriptorFactory
         throw new NotSupportedException(expression.ToString());
     }
 
-    private static object GetValueFromExpression(MemberExpression expression)
+    private static object? GetValueFromExpression(MemberExpression expression)
     {
         while (true)
         {
             // expression is ConstantExpression or FieldExpression
             if (expression.Expression is ConstantExpression constantExpression)
             {
-                return constantExpression.Value.GetType()
+                return constantExpression.Value?.GetType()
                     .GetField(expression.Member.Name)
-                    .GetValue(constantExpression.Value);
+                    ?.GetValue(constantExpression.Value);
             }
 
             if (expression.Expression is MemberExpression memberExpression)

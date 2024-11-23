@@ -8,11 +8,11 @@ public class Job
     public JobState JobState { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public IJobDescriptor Descriptor { get; set; } = default!;
-    public Guid? InstanceId { get; set; }
     public string? Cron { get; set; }
-    public string? GroupName { get; set; }
-    public DateTimeOffset? NextOccurrenceAt { get; set; }
     public int RowVersion { get; set; }
-    public List<string> Errors { get; set; } = new();
+    public List<string> Errors { get; set; } = [];
     public Dictionary<string, string> Context { get; set; } = new();
+    public Guid? LockId { get; set; }
+    public DateTimeOffset? LockExpiresAt { get; set; }
+    public DateTimeOffset? NextOccurrenceAt { get; set; }
 }

@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Linq.Expressions;
 using Backynet.Abstraction;
 using Microsoft.Extensions.Logging;
@@ -23,7 +22,6 @@ internal sealed class BackynetClient : IBackynetClient
 
     public async Task<Guid> EnqueueAsync(
         Expression expression,
-        string? groupName = null,
         DateTimeOffset? when = null,
         string? cron = null,
         CancellationToken cancellationToken = default)
@@ -32,11 +30,6 @@ internal sealed class BackynetClient : IBackynetClient
 
         var jobDescriptor = JobDescriptorFactory.Create(expression);
         var job = JobFactory.Create(jobDescriptor);
-
-        if (groupName != null)
-        {
-            job.GroupName = groupName;
-        }
 
         if (when != null)
         {
@@ -66,7 +59,6 @@ internal sealed class BackynetClient : IBackynetClient
         }
 
         job.JobState = JobState.Canceled;
-        job.InstanceId = null;
 
         if (await _jobRepository.Update(jobId, job, cancellationToken) is false)
         {
